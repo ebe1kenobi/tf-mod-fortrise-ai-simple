@@ -7,8 +7,8 @@ namespace TFModFortRiseAiSimple
   {
     public const string AINAME = "AISi";
     public static bool isAgentReady = false;
-    private static AISiAgent[] agents;// = new NAIAgent[8];
-    public static PlayerInput[] AgentInputs;// = new PlayerInput[8];
+    private static AISiAgent[] agents;
+    public static PlayerInput[] AgentInputs;
 
     public static void CreateAgent()
     {
@@ -23,8 +23,7 @@ namespace TFModFortRiseAiSimple
         // create an agent for each player
         AgentInputs[i] = new TFModFortRiseLoaderAI.Input(i);
         agents[i] = new AISiAgent(i, AINAME, AgentInputs[i]);
-        Logger.Info("Agent " + AINAME  + " " + i + " Created");
-        //if (null != TFGame.PlayerInputs[i]) continue;
+        //Logger.Info("Agent " + AINAME  + " " + i + " Created");
       }
 
       isAgentReady = true;

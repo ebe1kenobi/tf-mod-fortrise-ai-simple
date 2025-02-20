@@ -17,7 +17,7 @@ namespace TFModFortRiseAiSimple
     public TFModFortRiseAiSimpleModule()
     {
       Instance = this;
-      Logger.Init("TFModFortRiseAiSimpleLOG");
+      //Logger.Init("TFModFortRiseAiSimpleLOG");
     }
 
     public override void LoadContent()
@@ -30,7 +30,6 @@ namespace TFModFortRiseAiSimple
       typeof(LoaderAIImport).ModInterop();
       EightPlayerMod = IsModExists("WiderSetMod");
       PlayTagMod = IsModExists("PlayTag");
-      //Logger.Info("EightPlayerMod = " + EightPlayerMod);
     }
 
     public override void Unload()
