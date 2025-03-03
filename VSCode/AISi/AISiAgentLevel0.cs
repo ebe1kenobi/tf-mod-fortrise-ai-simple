@@ -4,10 +4,10 @@ using Microsoft.Xna.Framework;
 
 namespace TFModFortRiseAiSimple
 {
-  public class AISiAgent : TFModFortRiseLoaderAI.Agent
+  public class AISiAgentLevel0 : TFModFortRiseLoaderAI.Agent
   {
 
-    public AISiAgent(int index, String type, PlayerInput input) : base(index, type, input)
+    public AISiAgentLevel0(int index, String type, PlayerInput input) : base(index, type, input)
     {
     }
 

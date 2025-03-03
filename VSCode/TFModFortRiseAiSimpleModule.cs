@@ -17,7 +17,7 @@ namespace TFModFortRiseAiSimple
     public TFModFortRiseAiSimpleModule()
     {
       Instance = this;
-      //Logger.Init("TFModFortRiseAiSimpleLOG");
+      Logger.Init("TFModFortRiseAiSimpleLOG");
     }
 
     public override void LoadContent()
