@@ -11,7 +11,7 @@ namespace TFModFortRiseAiSimple
     {
     }
 
-    protected override void Move()
+    public override void Move()
     {
       this.input.inputState = new InputState();
       this.input.inputState.AimAxis.X = 0;

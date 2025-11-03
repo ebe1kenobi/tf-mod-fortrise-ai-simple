@@ -10,8 +10,14 @@ namespace TFModFortRiseAiSimple
     //  moves.RemoveAt(0);
     //  return moves;
     //}
+    public static void Move(ref InputState input, List<InputState> moves)
+    { 
+      if (moves.Count == 0)
+      {
+      }
+    }
 
-    public static void Shoot(ref InputState input, List<InputState> moves, string direction = "")
+  public static void Shoot(ref InputState input, List<InputState> moves, string direction = "")
     {
       // The arrow is shoot only if
       // - ShootPressed is true at update 1 to put Aiming = true

@@ -22,6 +22,12 @@ namespace TFModFortRiseAiSimple
       {
         AISi.CreateAgent();
       }
+
+      if (TFGame.GameLoaded && AISi.isAgentReady)
+      {
+        //base.MainMenu.State = MainMenu.MenuState.Main;
+        //AISi.StartNewSession();
+      }
     }
   }
 }

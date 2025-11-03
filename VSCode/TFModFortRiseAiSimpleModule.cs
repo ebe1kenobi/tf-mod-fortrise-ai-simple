@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using FortRise;
 using MonoMod.ModInterop;
+using System.Diagnostics;
 
 namespace TFModFortRiseAiSimple
 {
@@ -16,8 +18,12 @@ namespace TFModFortRiseAiSimple
 
     public TFModFortRiseAiSimpleModule()
     {
+      if (!Debugger.IsAttached)
+      {
+        //Debugger.Launch(); // Proposera d’attacher Visual Studio
+      }
       Instance = this;
-      Logger.Init("TFModFortRiseAiSimpleLOG");
+      Logger.Init("LOGAiSImple");
     }
 
     public override void LoadContent()
@@ -27,6 +33,7 @@ namespace TFModFortRiseAiSimple
     public override void Load()
     {
       MyTFGame.Load();
+      MyLevel.Load();
       typeof(LoaderAIImport).ModInterop();
       EightPlayerMod = IsModExists("WiderSetMod");
       PlayTagMod = IsModExists("PlayTag");
@@ -35,6 +42,7 @@ namespace TFModFortRiseAiSimple
     public override void Unload()
     {
       MyTFGame.Unload();
+      MyLevel.Unload();
     }
   }
 }
