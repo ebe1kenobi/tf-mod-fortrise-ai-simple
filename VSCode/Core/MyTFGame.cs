@@ -5,6 +5,7 @@ namespace TFModFortRiseAiSimple
 {
   internal class MyTFGame
   {
+    static bool sessionStarted = false;
     internal static void Load()
     {
       On.TowerFall.TFGame.Update += Update_patch;
@@ -23,11 +24,12 @@ namespace TFModFortRiseAiSimple
         AISi.CreateAgent();
       }
 
-      if (TFGame.GameLoaded && AISi.isAgentReady)
-      {
-        //base.MainMenu.State = MainMenu.MenuState.Main;
-        //AISi.StartNewSession();
-      }
+      //if (TFGame.GameLoaded && AISi.isAgentReady && !sessionStarted)
+      //{
+      //  //base.MainMenu.State = MainMenu.MenuState.Main;
+      //  AISi.StartNewSession();
+      //  sessionStarted = true;
+      //}
     }
   }
 }

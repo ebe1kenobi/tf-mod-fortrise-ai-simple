@@ -10,20 +10,45 @@ using MonoMod.Utils;
 using TowerFall;
 using System.Linq;
 using static TowerFall.Player;
+using System.Dynamic;
 
 namespace TFModFortRiseAiSimple
 {
   public class AISiAgentLevelChase : TFModFortRiseLoaderAI.Agent
   {
     private int[,] levelGrid;
-    private const int LEVEL_WIDTH = 32 * 2;  // 64 BLOCK
-    private const int LEVEL_HEIGHT = 24 * 2; // 48 BLOCK
-    private const int BLOCK_SIZE = 10 / 2;
+    public const int LEVEL_WIDTH = 32;  // 64 BLOCK
+    public const int LEVEL_HEIGHT = 24; // 48 BLOCK
+    public const int BLOCK_SIZE = 10;
+    //private const int LEVEL_WIDTH = 32 * 2;  // 64 BLOCK
+    //private const int LEVEL_HEIGHT = 24 * 2; // 48 BLOCK
+    //private const int BLOCK_SIZE = 10 / 2;
     private static bool levelCalculated = false;
     private static bool levelPrint = false;
 
-    private Player enemy;
-    private Player player;
+    //private List<Point> currentPath = null;
+    //private int currentPathIndex = 0;
+    private Point lastStart;
+    //private Point lastGoal;
+
+    // Variables globales à ajouter en haut de la classe :
+    private float pathRecalcTimer = 0f;
+    private const float PATH_RECALC_INTERVAL = 0.25f; // secondes
+    private List<Point> currentPath = null;
+    private int currentPathIndex = 0;
+    private Point lastGoal = new Point(-1, -1);
+
+    private bool isJumping = false;
+    private int ledgeCooldown = 0;
+    private bool ledgeJump = false;
+    private int ledgeJumpCooldown = 0;
+    private int ledgeJumpDir = 0;
+
+    public List<Point> debugPath = new List<Point>();
+    private const float DEBUG_CELL_SIZE = 10f; // correspond à BLOCK_SIZE
+
+    public Player enemy;
+    public Player player;
     private PlayerInfo playerInfo = new PlayerInfo();
     private PlayerInfo enemyInfo = new PlayerInfo();
     public AISiAgentLevelChase(int index, String type, PlayerInput input) : base(index, type, input) { 
@@ -31,32 +56,9 @@ namespace TFModFortRiseAiSimple
       enemyInfo = new PlayerInfo();
     }
 
-    //private void UpdateLevelGrid()
-    //{
-    //  //Logger.Info("UpdateLevelGrid");
-    //  if (levelGrid == null)
-    //  {
-    //    levelGrid = new int[LEVEL_HEIGHT, LEVEL_WIDTH];
-    //  }
-
-    //  // Réinitialiser la grille
-    //  for (int y = 0; y < LEVEL_HEIGHT; y++)
-    //  {
-    //    for (int x = 0; x < LEVEL_WIDTH; x++)
-    //    {
-    //      levelGrid[y, x] = 0;
-
-    //      if (level.CollideCheck(new Vector2(x * BLOCK_SIZE, y * BLOCK_SIZE), GameTags.Solid))
-    //      {
-    //        levelGrid[y, x] = 1;
-    //      }
-    //    }
-    //  }
-    //  if (!levelPrint) {
-    //    DebugPrintGrid();
-    //    levelPrint = true;
-    //  }
-    //}
+    public int getIndex(){
+      return index;
+    }
 
     private void UpdateLevelGrid()
     {
@@ -104,26 +106,282 @@ namespace TFModFortRiseAiSimple
     public override void Move()
     {
       UpdatePerception();
-      UpdateDecision();
-      //ExecuteAction();
+
+      if (player == null || enemy == null || levelGrid == null)
+      {
+        ApplyInputsToPlayerInput(0, false, false, false, false);
+        return;
+      }
+
+      pathRecalcTimer += Engine.DeltaTime;
+      if (pathRecalcTimer >= PATH_RECALC_INTERVAL || lastGoal.X != enemyInfo.X || lastGoal.Y != enemyInfo.Y || currentPath == null)
+      {
+        pathRecalcTimer = 0f;
+        lastGoal = new Point(enemyInfo.X, enemyInfo.Y);
+        Point start = new Point(playerInfo.X, playerInfo.Y);
+        Point goal = new Point(enemyInfo.X, enemyInfo.Y);
+
+        if (playerInfo.GrabEdge)
+        {
+          // Recalculer un chemin pour sortir de ledgegrab
+        }
+
+        currentPath = FindPath(start, goal);
+        currentPathIndex = 0;
+        debugPath = currentPath != null ? new List<Point>(currentPath) : new List<Point>();
+      }
+
+      bool wantJump = false;
+      bool wantDash = false;
+      // Si pas de chemin, simple poursuite horizontale
+      if (currentPath == null || currentPath.Count == 0)
+      {
+        int dir = Math.Sign(enemyInfo.X - playerInfo.X);
+        wantJump = (enemyInfo.Y < playerInfo.Y && playerInfo.onGround);
+        wantDash = false;
+
+        if (playerInfo.GrabEdge)
+        {
+          if (enemyInfo.Y < playerInfo.Y)
+            ApplyInputsToPlayerInput(dir, true, true, false, false); // grimpe
+          else
+            ApplyInputsToPlayerInput(0, false, false, false, false); // lâche prise
+          return;
+        }
+
+        ApplyInputsToPlayerInput(dir, wantJump, wantDash, false, false);
+        return;
+      }
+
+      // Suivi du chemin
+      if (currentPathIndex < 0) currentPathIndex = 0;
+      if (currentPathIndex >= currentPath.Count) currentPathIndex = currentPath.Count - 1;
+
+      Point myCell = new Point(playerInfo.X, playerInfo.Y);
+      while (currentPathIndex < currentPath.Count && currentPath[currentPathIndex].Equals(myCell))
+        currentPathIndex++;
+
+      if (currentPathIndex >= currentPath.Count)
+      {
+        ApplyInputsToPlayerInput(0, false, false, false, false);
+        return;
+      }
+
+      Point nextCell = currentPath[currentPathIndex];
+      int deltaX = nextCell.X - playerInfo.X;
+      int deltaY = nextCell.Y - playerInfo.Y;
+
+      int desiredDir = 0;
+      wantJump = false;
+      wantDash = false;
+      bool aimUp = false;
+      bool aimDown = false;
+
+      // --- LedgeGrab ---
+      if (playerInfo.GrabEdge)
+      {
+        if (nextCell.Y < playerInfo.Y)
+          ApplyInputsToPlayerInput(Math.Sign(nextCell.X - playerInfo.X), true, false, false, false);
+        else
+          ApplyInputsToPlayerInput(0, false, false, false, false);
+        return;
+      }
+
+      // --- Déplacements simples ---
+      if (deltaX != 0 && deltaY == 0)
+      {
+        desiredDir = Math.Sign(deltaX);
+      }
+      else if (deltaY < 0) // Monter
+      {
+        desiredDir = Math.Sign(deltaX);
+        if (playerInfo.onGround)
+          wantJump = true;
+        else
+          aimUp = true;
+      }
+      else if (deltaY > 0) // Descendre
+      {
+        desiredDir = Math.Sign(deltaX);
+        aimDown = true;
+      }
+
+      if (Math.Abs(deltaX) >= 6 && playerInfo.onGround)
+        wantDash = true;
+
+      ApplyInputsToPlayerInput(desiredDir, wantJump, wantDash, aimUp, aimDown);
+
+      // Avancement du path index
+      if (Math.Abs(playerInfo.X - nextCell.X) <= 0 && Math.Abs(playerInfo.Y - nextCell.Y) <= 0)
+        currentPathIndex++;
     }
+
+
+    private bool IsCellWalkable(int cellX, int cellY)
+    {
+      // We represent the player as 1 cell wide and 2 cells tall.
+      // playerInfo.Y corresponds to bottom cell -> so to be walkable,
+      // both cellY (bottom) and cellY-1 (top) must be free (0).
+      if (cellX < 0 || cellX >= LEVEL_WIDTH || cellY < 0 || cellY >= LEVEL_HEIGHT) return false;
+      int topY = cellY - 1;
+      if (topY < 0) return false;
+      if (levelGrid[cellY, cellX] == 1) return false;
+      if (levelGrid[topY, cellX] == 1) return false;
+      return true;
+    }
+
+    private List<Point> FindPath(Point start, Point goal)
+    {
+      // Simple A* on bottom-cell coordinates, with walkable check for 2-high player.
+      // Heuristic: Manhattan
+      var open = new List<Node>();
+      var closed = new HashSet<Point>();
+
+      Node startNode = new Node(start, 0, Manhattan(start, goal), null);
+      open.Add(startNode);
+
+      while (open.Count > 0)
+      {
+        // pop lowest F
+        open.Sort((a, b) => a.F.CompareTo(b.F));
+        Node current = open[0];
+        open.RemoveAt(0);
+
+        if (current.Position.Equals(goal))
+          return ReconstructPath(current);
+
+        closed.Add(current.Position);
+
+        // neighbors: left, right, up1/up2/up3 (if reachable), down (drop)
+        List<Point> neighbors = new List<Point>();
+        neighbors.Add(new Point(current.Position.X - 1, current.Position.Y)); // left
+        neighbors.Add(new Point(current.Position.X + 1, current.Position.Y)); // right
+        neighbors.Add(new Point(current.Position.X, current.Position.Y - 1)); // up (one)
+        neighbors.Add(new Point(current.Position.X, current.Position.Y + 1)); // down
+
+        // Allow up to 3 cells up (short jump)
+        neighbors.Add(new Point(current.Position.X - 1, current.Position.Y - 1)); // diag up-left
+        neighbors.Add(new Point(current.Position.X + 1, current.Position.Y - 1)); // diag up-right
+
+        foreach (var nb in neighbors)
+        {
+          if (nb.X < 0 || nb.X >= LEVEL_WIDTH || nb.Y <= 0 || nb.Y >= LEVEL_HEIGHT - 1) continue;
+          if (closed.Contains(nb)) continue;
+
+          // If neighbor is walkable (player fits)
+          if (!IsCellWalkable(nb.X, nb.Y)) continue;
+
+          float tentativeG = current.G + 1f; // every move cost 1 (could be tuned)
+
+          // If moving up several cells, give extra cost so A* prefers flat moves
+          if (nb.Y < current.Position.Y) tentativeG += 0.5f * (current.Position.Y - nb.Y);
+
+          Node existing = open.FirstOrDefault(n => n.Position.Equals(nb));
+          if (existing == null)
+          {
+            Node newNode = new Node(nb, tentativeG, Manhattan(nb, goal), current);
+            open.Add(newNode);
+          }
+          else if (tentativeG < existing.G)
+          {
+            existing.G = tentativeG;
+            existing.Parent = current;
+          }
+        }
+      }
+
+      // no path
+      return null;
+    }
+
+
+    private List<Point> ReconstructPath(Node node)
+    {
+      List<Point> path = new List<Point>();
+      Node cur = node;
+      while (cur != null)
+      {
+        path.Insert(0, cur.Position);
+        cur = cur.Parent;
+      }
+      return path;
+    }
+
+    private int Manhattan(Point a, Point b)
+    {
+      return Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
+    }
+
+    private void ApplyInputsToPlayerInput(int dirX, bool jump, bool dash, bool aimUp, bool aimDown)
+    {
+      // Remettre à zéro avant tout
+      this.input.inputState.MoveX = 0;
+      this.input.inputState.MoveY = 0;
+      this.input.inputState.AimAxis.X = 0;
+      this.input.inputState.AimAxis.Y = 0;
+      this.input.inputState.JumpCheck = false;
+      this.input.inputState.DodgeCheck = false;
+
+      // --- Déplacements horizontaux ---
+      if (dirX < 0)
+      {
+        this.input.inputState.MoveX = -1;
+        this.input.inputState.AimAxis.X = -1;
+      }
+      else if (dirX > 0)
+      {
+        this.input.inputState.MoveX = 1;
+        this.input.inputState.AimAxis.X = 1;
+      }
+
+      // --- Orientation verticale ---
+      if (aimUp)
+      {
+        this.input.inputState.AimAxis.Y = -1;
+        this.input.inputState.MoveY = -1;
+      }
+      else if (aimDown)
+      {
+        this.input.inputState.AimAxis.Y = 1;
+        this.input.inputState.MoveY = 1;
+      }
+
+      // --- Jump ---
+      if (jump)
+      {
+        this.input.inputState.JumpCheck = true;
+        this.input.inputState.JumpPressed = !this.input.prevInputState.JumpCheck;
+      }
+
+      // --- Dash ---
+      if (dash)
+      {
+        this.input.inputState.DodgeCheck = true;
+        this.input.inputState.DodgePressed = !this.input.prevInputState.DodgeCheck;
+      }
+    }
+
 
     void UpdatePerception()
     {
       UpdateLevelGrid();
       //DebugPrintGrid();
+      int playerIndex = index;
       player = level.GetPlayer(index); //todo check 
-      //search first enemy
+                                       //search first enemy
+      int enemyIndex = index == 0 ? 1 : 0;
       enemy = level.GetPlayer(index == 0 ? 1 : 0);  //todo , test for 2 players only
       if (player != null) {
         //Logger.Info("player" + index + " found");
 
         UpdatePlayerInfo(player, playerInfo);
+        //Logger.Info("IA " + playerIndex + " pos: " + playerInfo.X + "," + playerInfo.Y);
       }
       if (enemy != null)
       {
         //Logger.Info("enemy" + (index == 0 ? 1 : 0) + " found");
         UpdatePlayerInfo(enemy, enemyInfo);
+        //Logger.Info("enemy" + enemyIndex + " pos: " + enemyInfo.X + "," + enemyInfo.Y);
       }
     }
 
@@ -138,265 +396,13 @@ namespace TFModFortRiseAiSimple
       playerInfo.onGround = dynData.Get<bool>("OnGround");
       playerInfo.GrabEdge = dynData.Get<PlayerStates>("State") == PlayerStates.LedgeGrab;
       playerInfo.Speed = player.Speed;
+      //if (0 == dynData.Get<int>("PlayerIndex"))
+        //Logger.Info(playerInfo.Speed.X.ToString());
       playerInfo.CanWallJump = dynData.Invoke<bool>("CanWallJump", Facing.Left) || dynData.Invoke<bool>("CanWallJump", Facing.Right);
       dynData.Dispose();
     }
 
-    void UpdateDecision()
-    {
-      if (player == null || enemy == null)
-        return;
-
-      Point start = new Point(playerInfo.X, playerInfo.Y);
-      Point goal = new Point(enemyInfo.X, enemyInfo.Y);
-      Logger.Info($"Start cell = {start.X},{start.Y} value={levelGrid[start.Y, start.X]}");
-      Logger.Info($"Goal  cell = {goal.X},{goal.Y} value={levelGrid[goal.Y, goal.X]}");
-
-      List<Point> path = FindPlatformPath(start, goal);
-      if (path == null || path.Count < 2){
-        Logger.Info("No path found"); 
-        return;
-      }
-
-      Point next = path[1];
-
-      input.inputState.MoveX = 0;
-      input.inputState.JumpCheck = false;
-      input.inputState.JumpPressed = false;
-
-      if (next.X > start.X) input.inputState.MoveX = 1;
-      else if (next.X < start.X) input.inputState.MoveX = -1;
-
-      if (next.Y < start.Y && playerInfo.onGround)
-      {
-        input.inputState.JumpCheck = true;
-        input.inputState.JumpPressed = !input.prevInputState.JumpCheck;
-      }
-
-      Logger.Info($"AI path step: {next.X},{next.Y}");
-    }
-
-
-    //void ExecuteAction()
-    //{
-    //  if (OnSamePlatform(self, enemy))
-    //    EngageEnemy(enemy);
-    //  else
-    //    MoveToward(target);
-    //}
-
-    List<Point> ReconstructPath(Node node)
-    {
-      var path = new List<Point>();
-      while (node != null)
-      {
-        path.Add(node.Position);
-        node = node.Parent;
-      }
-      path.Reverse();
-      return path;
-    }
-
-    float Heuristic(Point a, Point b)
-    {
-      return Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y); // distance Manhattan
-    }
-
-    float Distance(Point a, Point b)
-    {
-      // diagonales un peu plus longues
-      return (a.X != b.X && a.Y != b.Y) ? 1.4f : 1f;
-    }
-
-    //bool IsWalkable(Point p) //todo sauf si trou dans mur non ?
-    //{
-    //  if (p.X < 0 || p.X >= LEVEL_WIDTH || p.Y < 0 || p.Y >= LEVEL_HEIGHT)
-    //    return false;
-    //  return levelGrid[p.Y, p.X] == 0;
-    //}
-
-    //bool IsSolid(int gridX, int gridY)
-    //{
-    //  if (gridX < 0 || gridX >= LEVEL_WIDTH || gridY < 0 || gridY >= LEVEL_HEIGHT)
-    //    return true;
-    //  return levelGrid[gridY, gridX] == 1;
-    //}
-
-    List<Point> FindPlatformPath(Point start, Point goal)
-    {
-      var openList = new List<Node>();
-      var closedList = new HashSet<Point>();
-
-      Node startNode = new Node(start, 0, Heuristic(start, goal));
-      openList.Add(startNode);
-
-      int maxJumpHeight = 6;   // hauteur max de saut (plus réaliste pour TowerFall)
-      int maxStepWidth = 5;    // portée horizontale max du saut
-
-      Logger.Info($"Start cell = {start.X},{start.Y} value={levelGrid[start.Y, start.X]}");
-      Logger.Info($"Goal  cell = {goal.X},{goal.Y} value={levelGrid[goal.Y, goal.X]}");
-
-      while (openList.Count > 0)
-      {
-        Node current = openList.OrderBy(n => n.F).First();
-        if (current.Position == goal)
-        {
-          Logger.Info($"A*: path found with {closedList.Count} explored nodes");
-          return ReconstructPath(current);
-        }
-
-        openList.Remove(current);
-        closedList.Add(current.Position);
-
-        // --- 1️⃣ MOUVEMENT LATÉRAL (Gauche/Droite) ---
-        foreach (int dirX in new int[] { -1, 1 })
-        {
-          Point next = WrapPoint(new Point(current.Position.X + dirX, current.Position.Y));
-
-          if (!IsWalkable(next))
-            continue;
-
-          // Si on est dans un mur, ignore
-          if (IsSolid(current.Position.X, current.Position.Y))
-            continue;
-
-          // ✅ Si pas de sol dessous, on simule la chute avant de continuer
-          if (!IsSolid(next.X, next.Y + 1))
-          {
-            Point fall = SimulateFall(next);
-            if (!fall.Equals(next))
-              next = fall;
-          }
-
-          TryAddNode(current, next, goal, openList, closedList);
-        }
-
-        // --- 2️⃣ SAUT (depuis le sol) ---
-        if (IsSolid(current.Position.X, current.Position.Y + 1))
-        {
-          for (int dx = -maxStepWidth; dx <= maxStepWidth; dx++)
-          {
-            for (int dy = 1; dy <= maxJumpHeight; dy++)
-            {
-              Point jump = WrapPoint(new Point(current.Position.X + dx, current.Position.Y - dy));
-              if (!IsWalkable(jump))
-                continue;
-
-              // Simuler la chute après le saut (atterrissage)
-              Point fall = SimulateFall(jump);
-              if (!fall.Equals(jump))
-                jump = fall;
-
-              if (IsInside(jump))
-                TryAddNode(current, jump, goal, openList, closedList);
-            }
-          }
-        }
-
-        // --- 3️⃣ CHUTE (infinie jusqu’à sol) ---
-        if (!IsSolid(current.Position.X, current.Position.Y + 1))
-        {
-          Point fall = SimulateFall(current.Position);
-          if (!fall.Equals(current.Position))
-            TryAddNode(current, fall, goal, openList, closedList);
-        }
-      }
-
-      Logger.Info($"A*: no path found (explored={closedList.Count})");
-      return new List<Point>();
-    }
-
-    // ✅ Simule une chute verticale jusqu’à atteindre un sol
-    Point SimulateFall(Point start)
-    {
-      Point pos = start;
-      for (int y = start.Y; y < LEVEL_HEIGHT - 1; y++)
-      {
-        if (IsSolid(pos.X, y + 1))
-          return new Point(pos.X, y);
-      }
-      return pos; // chute infinie (aucun sol trouvé)
-    }
-
-    // ✅ Ajout du voisin dans A*
-    void TryAddNode(Node current, Point next, Point goal, List<Node> openList, HashSet<Point> closed)
-    {
-      if (closed.Contains(next))
-        return;
-
-      float newG = current.G + Distance(current.Position, next);
-      Node existing = openList.FirstOrDefault(n => n.Position == next);
-      if (existing == null)
-      {
-        openList.Add(new Node(next, newG, Heuristic(next, goal), current));
-      }
-      else if (newG < existing.G)
-      {
-        existing.G = newG;
-        existing.Parent = current;
-      }
-    }
-
-    // ✅ Wrap horizontal (écran bouclant)
-    Point WrapPoint(Point p)
-    {
-      if (p.X < 0) p.X = LEVEL_WIDTH - 1;
-      else if (p.X >= LEVEL_WIDTH) p.X = 0;
-      return p;
-    }
-
-    // ✅ Vérifie si on reste dans la carte
-    bool IsInside(Point p)
-    {
-      return p.Y >= 0 && p.Y < LEVEL_HEIGHT;
-    }
-
-    int GetPathLength(Node node)
-    {
-      int len = 0;
-      while (node != null)
-      {
-        len++;
-        node = node.Parent;
-      }
-      return len;
-    }
-
-    //void TryAddNode(Node current, Point next, Point goal, List<Node> openList, HashSet<Point> closed)
-    //{
-    //  if (closed.Contains(next))
-    //    return;
-
-    //  float newG = current.G + Distance(current.Position, next);
-    //  Node existing = openList.FirstOrDefault(n => n.Position == next);
-    //  if (existing == null)
-    //  {
-    //    openList.Add(new Node(next, newG, Heuristic(next, goal), current));
-    //  }
-    //  else if (newG < existing.G)
-    //  {
-    //    existing.G = newG;
-    //    existing.Parent = current;
-    //  }
-    //}
-
-    // ✅ Nouvelle fonction wrap horizontale
-    //Point WrapPoint(Point p)
-    //{
-    //  if (p.X < 0) p.X = LEVEL_WIDTH - 1;
-    //  else if (p.X >= LEVEL_WIDTH) p.X = 0;
-    //  return p;
-    //}
-
-    //bool IsInside(Point p)
-    //{
-    //  return p.Y >= 0 && p.Y < LEVEL_HEIGHT;
-    //}
-
-/// ----------------- UTILITAIRES -----------------
-
-// Use consistent BLOCK_SIZE sampling & convert world position -> cell
-Point WorldToCell(Vector2 pos)
+    public Point WorldToCell(Vector2 pos)
     {
       int cellX = (int)(pos.X / BLOCK_SIZE);
       int cellY = (int)(pos.Y / BLOCK_SIZE);
@@ -407,81 +413,8 @@ Point WorldToCell(Vector2 pos)
       if (cellY >= LEVEL_HEIGHT) cellY = LEVEL_HEIGHT - 1;
       return new Point(cellX, cellY);
     }
-
-    Point WorldToCellCenterSample(Vector2 pos)
-    {
-      // If you prefer sampling by center, still same conversion for player pos
-      return WorldToCell(pos);
-    }
-
-    // Wrap horizontal X only
-    //Point WrapPoint(Point p)
-    //{
-    //  int x = p.X;
-    //  if (x < 0) x = LEVEL_WIDTH - 1;
-    //  else if (x >= LEVEL_WIDTH) x = 0;
-    //  return new Point(x, p.Y);
-    //}
-
-    //bool IsInside(Point p)
-    //{
-    //  return p.X >= 0 && p.X < LEVEL_WIDTH && p.Y >= 0 && p.Y < LEVEL_HEIGHT;
-    //}
-
-    bool IsSolid(int gridX, int gridY)
-    {
-      if (gridX < 0 || gridX >= LEVEL_WIDTH || gridY < 0 || gridY >= LEVEL_HEIGHT)
-        return true;
-      return levelGrid[gridY, gridX] == 1;
-    }
-
-    bool IsWalkable(Point p)
-    {
-      if (!IsInside(p)) return false;
-      return levelGrid[p.Y, p.X] == 0;
-    }
-
-    // Find nearest walkable cell if start/goal fall into solid
-    Point FindNearestWalkable(Point p, int maxRadius = 6)
-    {
-      if (IsWalkable(p)) return p;
-      for (int r = 1; r <= maxRadius; r++)
-      {
-        for (int dy = -r; dy <= r; dy++)
-        {
-          for (int dx = -r; dx <= r; dx++)
-          {
-            var np = WrapPoint(new Point(p.X + dx, p.Y + dy));
-            if (IsInside(np) && IsWalkable(np))
-              return np;
-          }
-        }
-      }
-      // fallback: return original (may be solid)
-      return p;
-    }
-    /////////////////////////LATER
-
-    //void UpdatePerception(GameState state)
-    //{
-    //    visibleEnemies.Clear();
-    //    incomingProjectiles.Clear();
-
-    //    foreach (var enemy in state.Enemies)
-    //    {
-    //        if (IsVisible(enemy.Position))
-    //            visibleEnemies.Add(enemy);
-    //    }
-
-    //    foreach (var projectile in state.Projectiles)
-    //    {
-    //        if (WillHitMe(projectile))
-    //            incomingProjectiles.Add(projectile);
-    //    }
-    //    Detect nearby platforms
-    //    nearbyPlatforms = DetectPlatformsAround(player.Position);
-    //}
   }
+
   class PlayerInfo
   {
     public PlayerState state;
