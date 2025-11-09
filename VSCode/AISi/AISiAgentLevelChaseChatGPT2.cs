@@ -1,4 +1,4 @@
-﻿////version poursuite pas mal a garder comme base
+﻿////version poursuite avec tir et catch mais tir dans mur et ne sais pas sauter obstacle haut
 //using System;
 //using System.Collections.Generic;
 //using System.IO;
@@ -11,6 +11,7 @@
 //using TowerFall;
 //using System.Linq;
 //using static TowerFall.Player;
+//using static TowerFall.Arrow;
 //using System.Dynamic;
 
 //namespace TFModFortRiseAiSimple
@@ -45,19 +46,35 @@
 //    private int ledgeJumpCooldown = 0;
 //    private int ledgeJumpDir = 0;
 
+//    // --- Variables à ajouter en haut de la classe ---
+//    private int shootState = 0; // 0 = idle, 1 = preparing, 2 = shooting, 3 = cooldown
+//    private int shootFrameCounter = 0;
+//    private Vector2 shootDirection = Vector2.Zero;
+//    private const int SHOOT_HOLD_FRAMES = 2;
+//    private const int SHOOT_COOLDOWN_FRAMES = 5;
+//    // Variables supplémentaires à mettre en haut de la classe
+//    private float shootCooldownTimer = 0f;
+//    private const float SHOOT_COOLDOWN = 0.25f; // secondes entre deux tirs
+
+//    private const int ARROW_CATCH_RANGE = 1; // nombre de cases autour du joueur pour tenter le catch
+
+
 //    public List<Point> debugPath = new List<Point>();
 //    private const float DEBUG_CELL_SIZE = 10f; // correspond à BLOCK_SIZE
 
 //    public Player enemy;
 //    public Player player;
 //    private PlayerInfo playerInfo = new PlayerInfo();
+//    private List<ArrowInfo> arrows = new List<ArrowInfo>();
 //    private PlayerInfo enemyInfo = new PlayerInfo();
-//    public AISiAgentLevelChase(int index, String type, PlayerInput input) : base(index, type, input) { 
+//    public AISiAgentLevelChase(int index, String type, PlayerInput input) : base(index, type, input)
+//    {
 //      playerInfo = new PlayerInfo();
 //      enemyInfo = new PlayerInfo();
 //    }
 
-//    public int getIndex(){
+//    public int getIndex()
+//    {
 //      return index;
 //    }
 
@@ -98,7 +115,8 @@
 //        Logger.Info(line);
 //      }
 //    }
-//    public override void Reset() {
+//    public override void Reset()
+//    {
 //      //calculate levelGrid
 //      UpdateLevelGrid();
 //      DebugPrintGrid();
@@ -114,6 +132,7 @@
 //        return;
 //      }
 
+//      // --- Recalcul du chemin ---
 //      pathRecalcTimer += Engine.DeltaTime;
 //      if (pathRecalcTimer >= PATH_RECALC_INTERVAL || lastGoal.X != enemyInfo.X || lastGoal.Y != enemyInfo.Y || currentPath == null)
 //      {
@@ -122,100 +141,192 @@
 //        Point start = new Point(playerInfo.X, playerInfo.Y);
 //        Point goal = new Point(enemyInfo.X, enemyInfo.Y);
 
-//        if (playerInfo.GrabEdge)
-//        {
-//          // Recalculer un chemin pour sortir de ledgegrab
-//        }
-
 //        currentPath = FindPath(start, goal);
 //        currentPathIndex = 0;
 //        debugPath = currentPath != null ? new List<Point>(currentPath) : new List<Point>();
 //      }
 
+//      // --- Déplacements ---
 //      bool wantJump = false;
 //      bool wantDash = false;
-//      // Si pas de chemin, simple poursuite horizontale
-//      if (currentPath == null || currentPath.Count == 0)
-//      {
-//        int dir = Math.Sign(enemyInfo.X - playerInfo.X);
-//        wantJump = (enemyInfo.Y < playerInfo.Y && playerInfo.onGround);
-//        wantDash = false;
-
-//        if (playerInfo.GrabEdge)
-//        {
-//          if (enemyInfo.Y < playerInfo.Y)
-//            ApplyInputsToPlayerInput(dir, true, true, false, false); // grimpe
-//          else
-//            ApplyInputsToPlayerInput(0, false, false, false, false); // lâche prise
-//          return;
-//        }
-
-//        ApplyInputsToPlayerInput(dir, wantJump, wantDash, false, false);
-//        return;
-//      }
-
-//      // Suivi du chemin
-//      if (currentPathIndex < 0) currentPathIndex = 0;
-//      if (currentPathIndex >= currentPath.Count) currentPathIndex = currentPath.Count - 1;
-
-//      Point myCell = new Point(playerInfo.X, playerInfo.Y);
-//      while (currentPathIndex < currentPath.Count && currentPath[currentPathIndex].Equals(myCell))
-//        currentPathIndex++;
-
-//      if (currentPathIndex >= currentPath.Count)
-//      {
-//        ApplyInputsToPlayerInput(0, false, false, false, false);
-//        return;
-//      }
-
-//      Point nextCell = currentPath[currentPathIndex];
-//      int deltaX = nextCell.X - playerInfo.X;
-//      int deltaY = nextCell.Y - playerInfo.Y;
-
 //      int desiredDir = 0;
-//      wantJump = false;
-//      wantDash = false;
 //      bool aimUp = false;
 //      bool aimDown = false;
 
-//      // --- LedgeGrab ---
-//      if (playerInfo.GrabEdge)
+//      // Si pas de chemin, simple poursuite horizontale
+//      if (currentPath == null || currentPath.Count == 0)
 //      {
-//        if (nextCell.Y < playerInfo.Y)
-//          ApplyInputsToPlayerInput(Math.Sign(nextCell.X - playerInfo.X), true, false, false, false);
-//        else
+//        desiredDir = Math.Sign(enemyInfo.X - playerInfo.X);
+//        wantJump = (enemyInfo.Y < playerInfo.Y && playerInfo.onGround);
+//        wantDash = false;
+//        ApplyInputsToPlayerInput(desiredDir, wantJump, wantDash, false, false);
+//      }
+//      else
+//      {
+//        if (currentPathIndex < 0) currentPathIndex = 0;
+//        if (currentPathIndex >= currentPath.Count) currentPathIndex = currentPath.Count - 1;
+
+//        Point myCell = new Point(playerInfo.X, playerInfo.Y);
+//        while (currentPathIndex < currentPath.Count && currentPath[currentPathIndex].Equals(myCell))
+//          currentPathIndex++;
+
+//        if (currentPathIndex >= currentPath.Count)
+//        {
 //          ApplyInputsToPlayerInput(0, false, false, false, false);
-//        return;
-//      }
-
-//      // --- Déplacements simples ---
-//      if (deltaX != 0 && deltaY == 0)
-//      {
-//        desiredDir = Math.Sign(deltaX);
-//      }
-//      else if (deltaY < 0) // Monter
-//      {
-//        desiredDir = Math.Sign(deltaX);
-//        if (playerInfo.onGround)
-//          wantJump = true;
+//        }
 //        else
-//          aimUp = true;
+//        {
+//          Point nextCell = currentPath[currentPathIndex];
+//          int deltaX = nextCell.X - playerInfo.X;
+//          int deltaY = nextCell.Y - playerInfo.Y;
+
+//          // --- LedgeGrab ---
+//          if (playerInfo.GrabEdge)
+//          {
+//            if (nextCell.Y < playerInfo.Y)
+//              ApplyInputsToPlayerInput(Math.Sign(nextCell.X - playerInfo.X), true, false, false, false);
+//            else
+//              ApplyInputsToPlayerInput(0, false, false, false, false);
+//          }
+//          else
+//          {
+//            // --- Déplacements simples ---
+//            desiredDir = Math.Sign(deltaX);
+//            if (deltaY < 0 && playerInfo.onGround) wantJump = true;
+//            if (Math.Abs(deltaX) >= 6 && playerInfo.onGround) wantDash = true;
+//            if (deltaY < 0) aimUp = true;
+//            if (deltaY > 0) aimDown = true;
+
+//            ApplyInputsToPlayerInput(desiredDir, wantJump, wantDash, aimUp, aimDown);
+
+//            // Avancement du path index
+//            if (Math.Abs(playerInfo.X - nextCell.X) <= 0 && Math.Abs(playerInfo.Y - nextCell.Y) <= 0)
+//              currentPathIndex++;
+//          }
+//        }
 //      }
-//      else if (deltaY > 0) // Descendre
-//      {
-//        desiredDir = Math.Sign(deltaX);
-//        aimDown = true;
-//      }
 
-//      if (Math.Abs(deltaX) >= 6 && playerInfo.onGround)
-//        wantDash = true;
-
-//      ApplyInputsToPlayerInput(desiredDir, wantJump, wantDash, aimUp, aimDown);
-
-//      // Avancement du path index
-//      if (Math.Abs(playerInfo.X - nextCell.X) <= 0 && Math.Abs(playerInfo.Y - nextCell.Y) <= 0)
-//        currentPathIndex++;
+//      // --- Gestion du tir ---
+//      HandleShooting();
+//      HandleArrowCatch();
 //    }
+
+
+
+//    private void HandleArrowCatch()
+//    {
+//      if (player == null || arrows == null || arrows.Count == 0) return;
+
+//      // Parcours toutes les flèches
+//      foreach (var arrow in arrows)
+//      {
+//        // On ne tente de rattraper que si la flèche est encore en vol
+//        if (arrow.state == ArrowStates.Shooting ||
+//            arrow.state == ArrowStates.Drilling ||
+//            arrow.state == ArrowStates.Gravity ||
+//            arrow.state == ArrowStates.Falling)
+//        {
+//          // Calculer direction relative de la flèche par rapport au joueur
+//          Vector2 toPlayer = player.Position - arrow.Position;
+
+//          // Vérifier si la flèche va vers le joueur
+//          if (Vector2.Dot(toPlayer, arrow.Speed) > 0)
+//          {
+//            // Vérifier la proximité (X et Y en case)
+//            Point arrowCell = new Point(arrow.X, arrow.Y);
+//            Point playerCell = new Point(playerInfo.X, playerInfo.Y);
+
+//            if (Math.Abs(arrowCell.X - playerCell.X) <= ARROW_CATCH_RANGE &&
+//                Math.Abs(arrowCell.Y - playerCell.Y) <= ARROW_CATCH_RANGE)
+//            {
+//              // Activer le catch
+//              this.input.inputState.DodgeCheck = true;
+//              this.input.inputState.DodgePressed = !this.input.prevInputState.DodgeCheck;
+//              return; // on catch une flèche à la fois
+//            }
+//          }
+//        }
+//      }
+
+//      // Sinon, pas de flèche à attraper
+//      this.input.inputState.DodgeCheck = false;
+//      this.input.inputState.DodgePressed = false;
+//    }
+
+
+//    // --- Méthode pour gérer le tir ---
+//    private void HandleShooting()
+//    {
+//      if (enemy == null || player == null) return;
+//      if (playerInfo.NbArrows <= 0) return; // pas de tir possible
+
+//      shootCooldownTimer += Engine.DeltaTime;
+
+//      if (shootCooldownTimer < SHOOT_COOLDOWN && shootState == 0) return;
+
+//      // Calcul direction vers l'ennemi
+//      Vector2 dir = enemy.Position - player.Position;
+//      if (dir != Vector2.Zero) dir.Normalize();
+//      shootDirection = dir;
+
+//      // Déterminer type de tir et portée maximale
+//      float deltaX = enemyInfo.X - playerInfo.X;
+//      float deltaY = enemyInfo.Y - playerInfo.Y;
+//      bool canShoot = false;
+
+//      // Tir horizontal
+//      if (Math.Abs(deltaY) <= 1 && Math.Abs(deltaX) <= 13) canShoot = true;
+
+//      // Tir vertical haut
+//      else if (deltaX == 0 && deltaY < 0 && Math.Abs(deltaY) <= 13) canShoot = true;
+
+//      // Tir diagonale haut
+//      else if (deltaX != 0 && deltaY < 0)
+//      {
+//        int maxDiagonalX = 17;
+//        int maxDiagonalY = 9;
+//        if (Math.Abs(deltaX) <= maxDiagonalX && Math.Abs(deltaY) <= maxDiagonalY) canShoot = true;
+//      }
+
+//      if (!canShoot) return; // hors portée, ne pas tirer
+
+//      // Cycle multi-frame
+//      if (shootState == 0)
+//      {
+//        shootState = 1; // préparer le tir
+//        shootFrameCounter = 0;
+//        shootCooldownTimer = 0f; // reset cooldown
+//      }
+
+//      if (shootState == 1) // préparer
+//      {
+//        shootFrameCounter++;
+//        this.input.inputState.AimAxis = shootDirection;
+//        this.input.inputState.ShootCheck = true;
+//        this.input.inputState.ShootPressed = true;
+
+//        if (shootFrameCounter >= SHOOT_HOLD_FRAMES)
+//        {
+//          shootState = 2;
+//          shootFrameCounter = 0;
+//        }
+//      }
+//      else if (shootState == 2) // relâchement
+//      {
+//        shootFrameCounter++;
+//        this.input.inputState.AimAxis = shootDirection;
+//        this.input.inputState.ShootCheck = false;
+//        this.input.inputState.ShootPressed = false;
+
+//        if (shootFrameCounter >= SHOOT_COOLDOWN_FRAMES)
+//        {
+//          shootState = 0; // prêt pour prochain tir
+//          shootFrameCounter = 0;
+//          playerInfo.NbArrows--; // diminuer le nombre de flèches
+//        }
+//      }
+//    }
+
 
 
 //    private bool IsCellWalkable(int cellX, int cellY)
@@ -372,7 +483,8 @@
 //                                       //search first enemy
 //      int enemyIndex = index == 0 ? 1 : 0;
 //      enemy = level.GetPlayer(index == 0 ? 1 : 0);  //todo , test for 2 players only
-//      if (player != null) {
+//      if (player != null)
+//      {
 //        //Logger.Info("player" + index + " found");
 
 //        UpdatePlayerInfo(player, playerInfo);
@@ -384,9 +496,11 @@
 //        UpdatePlayerInfo(enemy, enemyInfo);
 //        //Logger.Info("enemy" + enemyIndex + " pos: " + enemyInfo.X + "," + enemyInfo.Y);
 //      }
+//      UpdateArrowInfo();
 //    }
 
-//    void UpdatePlayerInfo(Player player, PlayerInfo playerInfo) {
+//    void UpdatePlayerInfo(Player player, PlayerInfo playerInfo)
+//    {
 //      var dynData = DynamicData.For(player);
 
 //      Point cell = WorldToCell(player.Position);
@@ -397,10 +511,25 @@
 //      playerInfo.onGround = dynData.Get<bool>("OnGround");
 //      playerInfo.GrabEdge = dynData.Get<PlayerStates>("State") == PlayerStates.LedgeGrab;
 //      playerInfo.Speed = player.Speed;
+//      playerInfo.NbArrows = player.Arrows.Count;
 //      //if (0 == dynData.Get<int>("PlayerIndex"))
-//        //Logger.Info(playerInfo.Speed.X.ToString());
+//      //Logger.Info(playerInfo.Speed.X.ToString());
 //      playerInfo.CanWallJump = dynData.Invoke<bool>("CanWallJump", Facing.Left) || dynData.Invoke<bool>("CanWallJump", Facing.Right);
 //      dynData.Dispose();
+//    }
+
+//    void UpdateArrowInfo() {
+//      arrows.Clear();
+//      foreach  (Arrow arrow in level[GameTags.Arrow]) {
+//        ArrowInfo arrowInfo = new ArrowInfo();
+//        arrowInfo.state = arrow.State;
+//        arrowInfo.Position = arrow.Position;
+//        arrowInfo.Speed = arrow.Speed;
+//        Point cell = WorldToCell(arrow.Position);
+//        arrowInfo.X = cell.X;
+//        arrowInfo.Y = cell.Y;
+//        arrows.Add(arrowInfo);
+//      }
 //    }
 
 //    public Point WorldToCell(Vector2 pos)
@@ -416,47 +545,7 @@
 //    }
 //  }
 
-//  class PlayerInfo
-//  {
-//    public PlayerState state;
-//    public Player.PlayerStates towerFallState;
-//    public int X;
-//    public int Y;
-//    public bool onGround = false;
-//    public bool GrabEdge = false;
-//    public bool CanWallJump = false;
-//    public Facing Facing;
-//    //HasShield
-//    //HasWings
-//    //List arrows
-//    public Vector2 Speed = Vector2.Zero;
-
-//    public PlayerInfo()
-//    {
-//      Reset();
-//    }
-
-//    public void Reset()
-//    {
-//      state = PlayerState.Idle;
-//      X = 0;
-//      Y = 0;
-//      onGround = false;
-//      GrabEdge = false;
-//      CanWallJump = false;
-//      Speed = Vector2.Zero;
-//      Facing = Facing.Right;
-//    }
-//  }
-
-//  enum PlayerState
-//  {
-//    Idle,
-//    Moving,
-//    Attacking,
-//    Jumping,
-//    Falling
-//  }
+  
 //  class Node
 //  {
 //    public Point Position;

@@ -35,6 +35,7 @@ namespace TFModFortRiseAiSimple
       MyTFGame.Load();
       MyLevel.Load();
       MyPlayer.Load();
+      //MyVersusLevelSystem.Load();
       typeof(LoaderAIImport).ModInterop();
       EightPlayerMod = IsModExists("WiderSetMod");
       PlayTagMod = IsModExists("PlayTag");
@@ -45,6 +46,7 @@ namespace TFModFortRiseAiSimple
       MyTFGame.Unload();
       MyLevel.Unload();
       MyPlayer.Unload();
+      //MyVersusLevelSystem.Unload();
     }
   }
 }

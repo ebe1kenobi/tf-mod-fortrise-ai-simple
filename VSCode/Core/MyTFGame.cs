@@ -6,6 +6,12 @@ namespace TFModFortRiseAiSimple
   internal class MyTFGame
   {
     static bool sessionStarted = false;
+    static int counter = 0;
+    public static bool sandbox = true;
+    public static bool displayPath = true;
+    public static int level = 1;
+    public static int sublevel = 1;
+    public static bool customLevel = true;
     internal static void Load()
     {
       On.TowerFall.TFGame.Update += Update_patch;
@@ -24,12 +30,15 @@ namespace TFModFortRiseAiSimple
         AISi.CreateAgent();
       }
 
-      //if (TFGame.GameLoaded && AISi.isAgentReady && !sessionStarted)
-      //{
-      //  //base.MainMenu.State = MainMenu.MenuState.Main;
-      //  AISi.StartNewSession();
-      //  sessionStarted = true;
-      //}
+      if (MyTFGame.sandbox) {
+        if (TFGame.GameLoaded && AISi.isAgentReady && !sessionStarted && counter > 5000) //wait 5s to sfx load
+        {
+          //base.MainMenu.State = MainMenu.MenuState.Main;
+          AISi.StartNewSession();
+          sessionStarted = true;
+        }
+        counter++;
+      }
     }
   }
 }
