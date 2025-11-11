@@ -28,75 +28,78 @@ namespace TFModFortRiseAiSimple
     //private const int LEVEL_WIDTH = 32 * 2;  // 64 BLOCK
     //private const int LEVEL_HEIGHT = 24 * 2; // 48 BLOCK
     //private const int BLOCK_SIZE = 10 / 2;
-    private static bool levelCalculated = false;
-    private static bool levelPrint = false;
+    public static bool levelCalculated = false;
+    public static bool levelPrint = false;
 
     //private List<Point> currentPath = null;
     //private int currentPathIndex = 0;
-    private Point lastStart;
+    public Point lastStart;
     //private Point lastGoal;
 
     // --- Bibliothèque de mouvements disponibles ---
     public List<MovementAction> movementLibrary;
     // --- Variables IA (à placer en haut de ta classe) ---
-    private Queue<MovementAction> currentActions = new Queue<MovementAction>();
+    public Queue<MovementAction> currentActions = new Queue<MovementAction>();
     //private MovementAction currentAction = null;
-    private float actionTimer = 0f;
+    public float actionTimer = 0f;
 
-    private bool testMode = false;
+    public bool testMode = false;
+    //private bool testMode = true;
     //public string testActionName = "None"; // Change ici pour tester une autre action
-    public string testActionName = "jumplefetsurblocm1m9"; // Change ici pour tester une autre action
+    public string testActionName = "jumpup"; // Change ici pour tester une autre action
     //public float testActionX = 305;
     //public float testActionY = 222;
-    public float testActionX = 305;
-    public float testActionY = 222;
+    public float testActionX = 305; //au bout du niveau a droite
+    public float testActionY = 222;  //au sol
+    //public float testActionY = 100; // en l'air
     public int testNone = 0;
 
-    private float testPauseTimer = 0f;
-    private const float TEST_PAUSE_DURATION = 1f; // durée de pause en secondes
+    public float testPauseTimer = 0f;
+    public const float TEST_PAUSE_DURATION = 1f; // durée de pause en secondes
 
-    private MovementAction currentAction = null;
-    private int currentPhaseIndex = 0;
-    private float phaseTimer = 0f;
+    public MovementAction currentAction = null;
+    public int currentPhaseIndex = 0;
+    public float phaseTimer = 0f;
     //private bool testMode = false;
 
     // Variables globales à ajouter en haut de la classe :
-    private float pathRecalcTimer = 0f;
-    private const float PATH_RECALC_INTERVAL = 0.25f; //0.25f; // secondes
-    private List<Point> currentPath = null;
-    private int currentPathIndex = 0;
-    private Point lastGoal = new Point(-1, -1);
+    public float pathRecalcTimer = 0f;
+    public const float PATH_RECALC_INTERVAL = 2f; //0.25f; // secondes
+    //public const float PATH_RECALC_INTERVAL = 0.25f; //0.25f; // secondes
+    public List<Point> currentPath = null;
+    public int currentPathIndex = 0;
+    public Point lastGoal = new Point(-1, -1);
 
-    private bool isJumping = false;
-    private int ledgeCooldown = 0;
-    private bool ledgeJump = false;
-    private int ledgeJumpCooldown = 0;
-    private int ledgeJumpDir = 0;
+    public bool isJumping = false;
+    public int ledgeCooldown = 0;
+    public bool ledgeJump = false;
+    public int ledgeJumpCooldown = 0;
+    public int ledgeJumpDir = 0;
 
-    private const int MAX_JUMP_HEIGHT = 3;   // cases max qu’on peut sauter
-    private const int MAX_FALL_HEIGHT = 50;  // cases max qu’on peut tomber
+    public const int MAX_JUMP_HEIGHT = 3;   // cases max qu’on peut sauter
+    public const int MAX_FALL_HEIGHT = 50;  // cases max qu’on peut tomber
 
     // --- Variables à ajouter en haut de la classe ---
-    private int shootState = 0; // 0 = idle, 1 = preparing, 2 = shooting, 3 = cooldown
-    private int shootFrameCounter = 0;
-    private Vector2 shootDirection = Vector2.Zero;
-    private const int SHOOT_HOLD_FRAMES = 2;
-    private const int SHOOT_COOLDOWN_FRAMES = 5;
+    public int shootState = 0; // 0 = idle, 1 = preparing, 2 = shooting, 3 = cooldown
+    public int shootFrameCounter = 0;
+    public Vector2 shootDirection = Vector2.Zero;
+    public const int SHOOT_HOLD_FRAMES = 2;
+    public const int SHOOT_COOLDOWN_FRAMES = 5;
     // Variables supplémentaires à mettre en haut de la classe
-    private float shootCooldownTimer = 0f;
-    private const float SHOOT_COOLDOWN = 0.25f; // secondes entre deux tirs
+    public float shootCooldownTimer = 0f;
+    public const float SHOOT_COOLDOWN = 0.25f; // secondes entre deux tirs
 
-    private const int ARROW_CATCH_RANGE = 1; // nombre de cases autour du joueur pour tenter le catch
+    public const int ARROW_CATCH_RANGE = 1; // nombre de cases autour du joueur pour tenter le catch
 
 
     public List<Point> debugPath = new List<Point>();
-    private const float DEBUG_CELL_SIZE = 10f; // correspond à BLOCK_SIZE
+    public const float DEBUG_CELL_SIZE = 10f; // correspond à BLOCK_SIZE
 
     public Player enemy;
     public Player player;
-    private PlayerInfo playerInfo = new PlayerInfo();
-    private List<ArrowInfo> arrows = new List<ArrowInfo>();
-    private PlayerInfo enemyInfo = new PlayerInfo();
+    public PlayerInfo playerInfo = new PlayerInfo();
+    public List<ArrowInfo> arrows = new List<ArrowInfo>();
+    public PlayerInfo enemyInfo = new PlayerInfo();
     public AISiAgentLevelChase(int index, String type, PlayerInput input) : base(index, type, input)
     {
       playerInfo = new PlayerInfo();
@@ -155,52 +158,52 @@ namespace TFModFortRiseAiSimple
       }
     }
 
-    private void DebugPrintPath()
-    {
-      if (levelGrid == null) return;
+    //private void DebugPrintPath()
+    //{
+    //  if (levelGrid == null) return;
 
-      StringWriter output = new StringWriter();
+    //  StringWriter output = new StringWriter();
 
-      for (int y = 0; y < LEVEL_HEIGHT; y++)
-      {
-        string line = "";
-        for (int x = 0; x < LEVEL_WIDTH; x++)
-        {
-          // Détection du contenu de la cellule
-          char cellChar = ' ';
+    //  for (int y = 0; y < LEVEL_HEIGHT; y++)
+    //  {
+    //    string line = "";
+    //    for (int x = 0; x < LEVEL_WIDTH; x++)
+    //    {
+    //      // Détection du contenu de la cellule
+    //      char cellChar = ' ';
 
-          switch (levelGrid[y, x])
-          {
-            case 1: cellChar = '#'; break; // Mur
-            case 2: cellChar = 'J'; break; // JumpPad
-            case 3: cellChar = 'T'; break; // Treasure
-            case 4: cellChar = 'L'; break; // Lava
-            case 5: cellChar = 'B'; break; // Brambles
-            default: cellChar = '.'; break; // Case libre
-          }
+    //      switch (levelGrid[y, x])
+    //      {
+    //        case 1: cellChar = '#'; break; // Mur
+    //        case 2: cellChar = 'J'; break; // JumpPad
+    //        case 3: cellChar = 'T'; break; // Treasure
+    //        case 4: cellChar = 'L'; break; // Lava
+    //        case 5: cellChar = 'B'; break; // Brambles
+    //        default: cellChar = '.'; break; // Case libre
+    //      }
 
-          // --- Superposition d'informations supplémentaires ---
-          // Position du joueur
-          if (playerInfo.X == x && playerInfo.Y == y)
-            cellChar = 'P';
+    //      // --- Superposition d'informations supplémentaires ---
+    //      // Position du joueur
+    //      if (playerInfo.X == x && playerInfo.Y == y)
+    //        cellChar = 'P';
 
-          // Position de l’ennemi
-          else if (enemyInfo.X == x && enemyInfo.Y == y)
-            cellChar = 'E';
+    //      // Position de l’ennemi
+    //      else if (enemyInfo.X == x && enemyInfo.Y == y)
+    //        cellChar = 'E';
 
-          // Chemin de debug
-          else if (debugPath != null && debugPath.Any(p => p.X == x && p.Y == y))
-            cellChar = '*';
+    //      // Chemin de debug
+    //      else if (debugPath != null && debugPath.Any(p => p.X == x && p.Y == y))
+    //        cellChar = '*';
 
-          line += cellChar;
-        }
+    //      line += cellChar;
+    //    }
 
-        Logger.Info(line);
-      }
+    //    Logger.Info(line);
+    //  }
 
-      Logger.Info("=== DEBUG PATH GRID ===");
-      Logger.Info(output.ToString());
-    }
+    //  Logger.Info("=== DEBUG PATH GRID ===");
+    //  Logger.Info(output.ToString());
+    //}
 
     public override void Reset()
     {
@@ -213,73 +216,49 @@ namespace TFModFortRiseAiSimple
     {
       UpdatePerception();
 
-      // --- MODE TEST ---
+      // === MODE TEST ===
       if (testMode)
       {
         if (currentAction == null || currentAction.Name == "None")
         {
           TestMovementAction(testActionName);
+
           currentPhaseIndex = 0;
           if (currentAction != null && currentAction.Phases.Count > 0)
+          {
             phaseTimer = currentAction.Phases[currentPhaseIndex].Duration;
+            Logger.Info($"Test {testActionName} : Condition: {currentAction.Condition(currentAction.StartPoint, this)}");
+          }
         }
 
         if (currentAction != null)
         {
-          MovementPhase phase = currentAction.Phases[currentPhaseIndex];
-          phaseTimer -= Engine.DeltaTime;
+          ExecuteActionPhases(currentAction);
+        }
 
-          ApplyPhaseInputs(phase);
-          if (phase.IsFinished(this, currentAction.StartPoint, currentAction.StartPosition, phaseTimer))
-          {
-            currentPhaseIndex++;
-            if (currentPhaseIndex >= currentAction.Phases.Count)
-            {
-              currentAction = null;
-              testPauseTimer = TEST_PAUSE_DURATION;
-            }
-            else
-            {
-              phaseTimer = currentAction.Phases[currentPhaseIndex].Duration;
-            }
-          }
+        if (currentAction == null)
+        {
+          //Reset control
+          ApplyPhaseInputs(new MovementPhase(0f));
         }
         return;
       }
 
-      // --- SI UNE ACTION EST EN COURS ---
+      // === ACTION EN COURS ===
       if (currentAction != null)
       {
-        MovementPhase phase = currentAction.Phases[currentPhaseIndex];
-        phaseTimer -= Engine.DeltaTime;
-
-        ApplyPhaseInputs(phase);
-
-        if (phase.IsFinished(this, currentAction.StartPoint, currentAction.StartPosition, phaseTimer))
-        {
-          currentPhaseIndex++;
-          if (currentPhaseIndex >= currentAction.Phases.Count)
-          {
-            currentAction = null;
-          }
-          else
-          {
-            phaseTimer = currentAction.Phases[currentPhaseIndex].Duration;
-          }
-        }
+        ExecuteActionPhases(currentAction);
       }
 
-      // --- RECALCUL D’ACTIONS TOUTES LES PATH_RECALC_INTERVAL SECONDES ---
+      // === RECALCUL DU CHEMIN À INTERVALLES RÉGULIERS ===
       pathRecalcTimer += Engine.DeltaTime;
-      if (pathRecalcTimer >= PATH_RECALC_INTERVAL)
+      if (currentAction == null && pathRecalcTimer >= PATH_RECALC_INTERVAL)
       {
         pathRecalcTimer = 0f;
-
-        // Recalcule la séquence d’actions même si currentActions n’est pas vide
         ComputeNewActionSequence();
       }
 
-      // --- LANCER LA PROCHAINE ACTION DE LA SÉQUENCE ---
+      // === LANCER UNE NOUVELLE ACTION ===
       if (currentAction == null && currentActions.Count > 0)
       {
         currentAction = currentActions.Dequeue();
@@ -287,12 +266,158 @@ namespace TFModFortRiseAiSimple
         currentAction.StartPoint = WorldToCell(player.Position);
         currentAction.StartPosition = player.Position;
         currentPhaseIndex = 0;
+
         if (currentAction.Phases.Count > 0)
           phaseTimer = currentAction.Phases[currentPhaseIndex].Duration;
 
+        //Logger.Info($"ApplyPhaseInputs = {currentPhaseIndex}  < start");
         ApplyPhaseInputs(currentAction.Phases[currentPhaseIndex]);
       }
     }
+
+    private void ExecuteActionPhases(MovementAction action)
+    {
+      int safetyCounter = 0; // sécurité pour éviter boucle infinie
+
+      while (action != null && currentPhaseIndex < action.Phases.Count && safetyCounter++ < 10)
+      {
+        MovementPhase phase = action.Phases[currentPhaseIndex];
+
+        // Vérifie la condition de la phase AVANT de l’exécuter
+        bool conditionOk = phase.Condition == null || phase.Condition(this, action.StartPoint, action.StartPosition);
+        if (!conditionOk)
+        {
+          // Passe directement à la suivante
+          Logger.Info($"Phase {currentPhaseIndex} ignorée ({phase}) car condition non remplie");
+          currentPhaseIndex++;
+          if (currentPhaseIndex < action.Phases.Count)
+            phaseTimer = action.Phases[currentPhaseIndex].Duration;
+          continue;
+        }
+
+        // Phase active : on applique les inputs
+        phaseTimer -= Engine.DeltaTime;
+        //Logger.Info($"ApplyPhaseInputs = {currentPhaseIndex}");
+        ApplyPhaseInputs(phase);
+
+        // Condition de fin atteinte ?
+        if (phase.IsFinished(this, action.StartPoint, action.StartPosition, phaseTimer))
+        {
+          currentPhaseIndex++;
+          if (currentPhaseIndex >= action.Phases.Count)
+          {
+            currentAction = null; // Fin de l’action complète
+            return;
+          }
+          else
+          {
+            phaseTimer = action.Phases[currentPhaseIndex].Duration;
+          }
+        }
+
+        break; // on sort si on est sur une phase active et valide
+      }
+
+      // Si toutes les phases ont été sautées → fin de l’action
+      if (currentAction != null && currentPhaseIndex >= currentAction.Phases.Count)
+      {
+        currentAction = null;
+      }
+    }
+
+    //public override void Move()
+    //{
+    //  UpdatePerception();
+
+    //  // --- MODE TEST ---
+    //  if (testMode)
+    //  {
+    //    if (currentAction == null || currentAction.Name == "None")
+    //    {
+    //      TestMovementAction(testActionName);
+
+    //      currentPhaseIndex = 0;
+    //      if (currentAction != null && currentAction.Phases.Count > 0)
+    //      {
+    //        phaseTimer = currentAction.Phases[currentPhaseIndex].Duration;
+    //        Logger.Info($"Test {testActionName} : Condition: { currentAction.Condition(currentAction.StartPoint, this)}");
+    //      }
+    //    }
+
+    //    if (currentAction != null)
+    //    {
+    //      MovementPhase phase = currentAction.Phases[currentPhaseIndex];
+    //      phaseTimer -= Engine.DeltaTime;
+
+    //      ApplyPhaseInputs(phase);
+    //      if (phase.IsFinished(this, currentAction.StartPoint, currentAction.StartPosition, phaseTimer))
+    //      {
+    //        currentPhaseIndex++;
+    //        if (currentPhaseIndex >= currentAction.Phases.Count)
+    //        {
+    //          currentAction = null;
+    //          testPauseTimer = TEST_PAUSE_DURATION;
+    //        }
+    //        else
+    //        {
+    //          phaseTimer = currentAction.Phases[currentPhaseIndex].Duration;
+    //        }
+    //      }
+    //    }
+    //    return;
+    //  }
+
+    //  // --- SI UNE ACTION EST EN COURS ---
+    //  if (currentAction != null)
+    //  {
+    //    MovementPhase phase = currentAction.Phases[currentPhaseIndex];
+    //    phaseTimer -= Engine.DeltaTime;
+
+    //    ApplyPhaseInputs(phase);
+
+    //    //pass to next phase if condition not met
+    //    if (!phase.Condition(this, currentAction.StartPoint, currentAction.StartPosition)) {
+
+    //    }
+
+    //    if (phase.IsFinished(this, currentAction.StartPoint, currentAction.StartPosition, phaseTimer))
+    //    {
+    //      currentPhaseIndex++;
+    //      if (currentPhaseIndex >= currentAction.Phases.Count)
+    //      {
+    //        currentAction = null;
+    //      }
+    //      else
+    //      {
+    //        phaseTimer = currentAction.Phases[currentPhaseIndex].Duration;
+    //      }
+    //    }
+    //  }
+
+    //  // --- RECALCUL D’ACTIONS TOUTES LES PATH_RECALC_INTERVAL SECONDES ---
+    //  pathRecalcTimer += Engine.DeltaTime;
+    //  if (pathRecalcTimer >= PATH_RECALC_INTERVAL)
+    //  {
+    //    pathRecalcTimer = 0f;
+
+    //    // Recalcule la séquence d’actions même si currentActions n’est pas vide
+    //    ComputeNewActionSequence();
+    //  }
+
+    //  // --- LANCER LA PROCHAINE ACTION DE LA SÉQUENCE ---
+    //  if (currentAction == null && currentActions.Count > 0)
+    //  {
+    //    currentAction = currentActions.Dequeue();
+    //    Logger.Info($"currentAction = {currentAction.Name}");
+    //    currentAction.StartPoint = WorldToCell(player.Position);
+    //    currentAction.StartPosition = player.Position;
+    //    currentPhaseIndex = 0;
+    //    if (currentAction.Phases.Count > 0)
+    //      phaseTimer = currentAction.Phases[currentPhaseIndex].Duration;
+
+    //    ApplyPhaseInputs(currentAction.Phases[currentPhaseIndex]);
+    //  }
+    //}
 
     //public override void Move()
     //{
@@ -742,7 +867,11 @@ namespace TFModFortRiseAiSimple
 
         foreach (var move in movementLibrary)
         {
-          //Logger.Info("move " + move.Name);
+          //if (move.Name == "leftm1")
+          //  Logger.Info($"{move.Name} {current.Position.X} {current.Position.Y} {move.Condition(current.Position, this)}");
+
+          //if (move.Name == "jumplefetholem2m0")
+          //  Logger.Info($"{move.Name} {current.Position.X} {current.Position.Y} {move.Condition(current.Position, this)}");
 
           if (!move.Condition(current.Position, this)) continue;
 
@@ -764,7 +893,8 @@ namespace TFModFortRiseAiSimple
             if (!HasGroundBelow(d.X, d.Y)) d = SimulateFall(d);
 
             // Ne pas se poser sur un mur
-            if (!IsCellWalkable(d.X, d.Y)) continue;  //todo comment to have multiple option of movement
+            if (IsSolid(d.X, d.Y)) continue;  //todo comment to have multiple option of movement
+            //if (!IsCellWalkable(d.X, d.Y)) continue;  //todo comment to have multiple option of movement
             //Logger.Info("IsCellWalkable true");
 
             // Déjà visité
@@ -775,7 +905,7 @@ namespace TFModFortRiseAiSimple
             Node existing = open.FirstOrDefault(n => n.Position.Equals(d));
             if (existing == null)
             {
-              Node newNode = new Node(d, g, Heuristic(d, goal), current) { PhaseIndex = 0 };
+              Node newNode = new Node(d, g, Heuristic(d, goal), current) { PhaseIndex = 0, MoveName = move.Name };
               open.Add(newNode);
             }
             else if (g < existing.G)
@@ -801,12 +931,17 @@ namespace TFModFortRiseAiSimple
     private List<Point> ReconstructPath(Node node)
     {
       List<Point> path = new List<Point>();
+      var moves = new List<string>(); // 🔥 noms des mouvements utilisés
       Node cur = node;
       while (cur != null)
       {
         path.Insert(0, cur.Position);
+        if (!string.IsNullOrEmpty(cur.MoveName))
+          moves.Add(cur.MoveName);
         cur = cur.Parent;
       }
+
+      Logger.Info("Chemin trouvé avec les mouvements : " + string.Join(" -> ", moves));
       return path;
     }
 
@@ -941,434 +1076,514 @@ namespace TFModFortRiseAiSimple
     }
 
     // --- Description d’un mouvement possible ---
-    public class MovementPhase
-    {
-      public float Duration;
-      public int MoveX;
-      public int MoveY;
-      public bool Jump;
-      public bool Dash;
-      public Vector2 AimAxis;
-      public Func<AISiAgentLevelChase, Point, Vector2, bool> EndCondition; // <- modifié
-
-      public MovementPhase(
-          float duration,
-          int moveX = 0,
-          int moveY = 0,
-          bool jump = false,
-          bool dash = false,
-          Func<AISiAgentLevelChase, Point, Vector2, bool> endCondition = null)
-      {
-        Duration = duration;
-        MoveX = moveX;
-        MoveY = moveY;
-        Jump = jump;
-        Dash = dash;
-        AimAxis = Vector2.Zero;
-        EndCondition = endCondition;
-      }
-
-      public bool IsFinished(AISiAgentLevelChase ai, Point startPoint, Vector2 startPosition, float timer)
-      {
-        if (EndCondition != null && EndCondition(ai, startPoint, startPosition))
-          return true;
-        //Logger.Info($"{timer}");
-        return timer <= 0f;
-      }
-    }
-
-
-
-
-    public class MovementAction
-    {
-      public string Name;                        // nom du mouvement pour debug
-      public List<MovementPhase> Phases;         // phases du mouvement
-      public Func<Point, AISiAgentLevelChase, bool> Condition; // condition pour lancer le mouvement
-      public Func<Point, AISiAgentLevelChase, List<Point>> ResultPositions;   // position finale approximative
-      public float Cost;                          // coût du mouvement (temps total)
-                                                  // Nouvelle propriété :
-      public Point StartPoint;
-      public Vector2 StartPosition;
-
-      public MovementAction(string name)
-      {
-        Name = name;
-        Phases = new List<MovementPhase>();
-      }
-
-      public MovementAction AddPhase(MovementPhase phase)
-      {
-        Phases.Add(phase);
-        return this;
-      }
-
-      // calcule le coût total du mouvement (par défaut somme des durées)
-      public void CalculateCost()
-      {
-        Cost = 0f;
-        foreach (var phase in Phases)
-        {
-          Cost += phase.Duration;
-        }
-      }
-    }
+    
 
 
 
     private void InitMovementLibrary()
     {
-      movementLibrary = new List<MovementAction>();
-      ////////////////////////
-      //var action = new MovementAction("None")
-      //    .AddPhase(new MovementPhase(1f));  // ne pas bouger
+      movementLibrary = AIMovementLibrary.BuildLibrary(this);
+      ////movementLibrary = new List<MovementAction>();
+      //////////////////////////
+      ////var action = new MovementAction("None")
+      ////    .AddPhase(new MovementPhase(1f));  // ne pas bouger
+      ////action.CalculateCost();
+      ////action.Condition = (pos, ai) => true;
+      ////action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X, pos.Y) };
+      ////movementLibrary.Add(action);
+      ////////////////////////// ok
+      //var action = new MovementAction("leftm1")
+      //    .AddPhase(new MovementPhase(1f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.X == startPoint.X - 1)) // ne pas bouger
+      //        //.AddPhase(new MovementPhase(1f, moveX: 0));
+      //;  // ne pas bouger
       //action.CalculateCost();
-      //action.Condition = (pos, ai) => true;
-      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X, pos.Y) };
+      ////action.Condition = (pos, ai) => true; // on peux avancer dans le vide et depart dans le vide
+      //action.Condition = (pos, ai) => 
+      //                                //IsSolid(pos.X, pos.Y + 1)
+      //                                //&& IsSolid(pos.X - 1, pos.Y + 1) 
+      //                                //&& 
+      //                                !IsSolid(pos.X - 1, pos.Y)
+      //;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y) };
       //movementLibrary.Add(action);
-      //////////////////////// ok
-      var action = new MovementAction("leftm1")
-          .AddPhase(new MovementPhase(1f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.X == startPoint.X - 1)) // ne pas bouger
-              .AddPhase(new MovementPhase(1f, moveX: 0))
-      ;  // ne pas bouger
-      action.CalculateCost();
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) && IsSolid(pos.X - 1, pos.Y + 1) && !IsSolid(pos.X - 1, pos.Y);
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y) };
-      movementLibrary.Add(action);
-      //////////////////////// ok
-      action = new MovementAction("rightp1")
-          .AddPhase(new MovementPhase(1f, moveX: 1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.X == startPoint.X + 1))  // ne pas bouger
-              .AddPhase(new MovementPhase(1f, moveX: 0))
-      ;// ne pas bouger
-      action.CalculateCost();
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) && IsSolid(pos.X + 1, pos.Y + 1) && !IsSolid(pos.X + 1, pos.Y);
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X + 1, pos.Y) };
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetholem1m0")
-          .AddPhase(new MovementPhase(0.03f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X - 1, pos.Y, pos.Y - 2) //air libre pour sauté
-                                      && IsSolid(pos.X - 1, pos.Y + 1)//sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetholem2m0")
-          .AddPhase(new MovementPhase(0.1f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X - 2, pos.Y, pos.Y - 3)  //air libre pour sauté
-                                      && IsSolid(pos.X - 2, pos.Y + 1) //sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 2, pos.Y) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok quand mur a pos.Y - 3 alors ledgegrab , ajouté phase saut
-      action = new MovementAction("jumplefetholem2m0ledge")
-          .AddPhase(new MovementPhase(0.1f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.GrabEdge))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.2f, moveX: -1))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.2f, moveX: -1, jump: true, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X - 1, pos.Y, pos.Y - 1)  //air libre pour sauté
-                                      && IsAreaFree(pos.X, pos.X - 1, pos.Y, pos.Y - 2)  //air libre pour sauté
-                                      && IsSolid(pos.X - 2, pos.Y + 1) //sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 2, pos.Y) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetholem3m0")
-          .AddPhase(new MovementPhase(0.15f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X - 3, pos.Y, pos.Y - 3)  //air libre pour sauté
-                                      && IsSolid(pos.X - 3, pos.Y + 1) //sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 3, pos.Y) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetholem4m0")
-          .AddPhase(new MovementPhase(0.5f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X - 4, pos.Y, pos.Y - 3)  //air libre pour sauté
-                                      && IsSolid(pos.X - 4, pos.Y + 1) //sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 4, pos.Y) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetholem5m0")
-          .AddPhase(new MovementPhase(0.37f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X - 5, pos.Y, pos.Y - 4)  //air libre pour sauté
-                                      && IsSolid(pos.X - 5, pos.Y + 1) //sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 5, pos.Y) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      ///////////////////////  ok
-      action = new MovementAction("jumplefetholem6m0")
-          .AddPhase(new MovementPhase(0.75f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X - 6, pos.Y, pos.Y - 4)  //air libre pour sauté
-                                      && IsSolid(pos.X - 6, pos.Y + 1) //sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 6, pos.Y) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      ///////////////////////  ok
-      action = new MovementAction("jumplefetholem7m0")
-          .AddPhase(new MovementPhase(0.3f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.4f, moveX: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X - 7, pos.Y, pos.Y - 4)  //air libre pour sauté
-                                      && IsSolid(pos.X - 7, pos.Y + 1) //sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 7, pos.Y) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      ///////////////////////  ok
-      action = new MovementAction("jumplefetholem7m0dash")
-          .AddPhase(new MovementPhase(0.3f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.1f, moveX: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveX: -1))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.28f, moveX: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X - 7, pos.Y, pos.Y - 3)  //air libre pour sauté
-                                      && IsSolid(pos.X - 7, pos.Y + 1) //sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 7, pos.Y) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      ///////////////////////  ok
-      action = new MovementAction("jumplefetholem8m0dash")
-          .AddPhase(new MovementPhase(0.3f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.05f, moveX: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveX: -1))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.24f, moveX: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X - 8, pos.Y, pos.Y - 3)  //air libre pour sauté
-                                      && IsSolid(pos.X - 8, pos.Y + 1) //sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 8, pos.Y) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetholem9m0dash")
-          .AddPhase(new MovementPhase(0.3f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveX: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveX: -1))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveX: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X - 9, pos.Y, pos.Y - 3)  //air libre pour sauté
-                                      && IsSolid(pos.X - 9, pos.Y + 1) //sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 9, pos.Y) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetsurblocm1m1")
-          .AddPhase(new MovementPhase(0.05f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 2)  //air libre pour sauté
-                                      && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 1, pos.Y - 2)  //air libre pour sauté
-                                      && IsSolid(pos.X - 1, pos.Y) //sol a l arrivé
-            ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 1) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetsurblocm1m2")
-          .AddPhase(new MovementPhase(0.08f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 3)  //air libre pour sauté
-                                      && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 2, pos.Y - 3)  //air libre pour sauté
-                                      && IsSolid(pos.X - 1, pos.Y - 1) //sol a l arrivé
-                ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 2) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok todo mauvaus calcul concidtion au dessus
-      action = new MovementAction("jumplefetsurblocm1m3")
-          .AddPhase(new MovementPhase(0.27f, moveX: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 4)  //air libre pour sauté
-                                      && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 3, pos.Y - 4)  //air libre pour sauté
-                                      && IsSolid(pos.X - 1, pos.Y - 2) //sol a l arrivé
-                ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 3) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetsurblocm1m4")
-          .AddPhase(new MovementPhase(0.1f, moveY: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.27f, moveY: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.33f, moveX: -1, endCondition: null))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 5)  //air libre pour sauté
-                                      && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 4, pos.Y - 5)  //air libre pour sauté
-                                      && IsSolid(pos.X - 1, pos.Y - 3) //sol a l arrivé
-                ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 4) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetsurblocm1m5")
-          .AddPhase(new MovementPhase(0.15f, moveY: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.27f, moveY: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.30f, moveX: -1, endCondition: null))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 6)  //air libre pour sauté
-                                      && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 5, pos.Y - 6)  //air libre pour sauté
-                                      && IsSolid(pos.X - 1, pos.Y - 4) //sol a l arrivé
-                ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 5) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetsurblocm1m6")
-          .AddPhase(new MovementPhase(0.25f, moveY: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.27f, moveY: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.30f, moveX: -1, endCondition: null))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 7)  //air libre pour sauté
-                                      && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 6, pos.Y - 7)  //air libre pour sauté
-                                      && IsSolid(pos.X - 1, pos.Y - 5) //sol a l arrivé
-                ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 6) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetsurblocm1m7")
-          .AddPhase(new MovementPhase(0.33f, moveY: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveY: -1))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))
-          .AddPhase(new MovementPhase(0.30f, moveX: -1, endCondition: null))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 8)  //air libre pour sauté
-                                      && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 7, pos.Y - 8)  //air libre pour sauté
-                                      && IsSolid(pos.X - 1, pos.Y - 6) //sol a l arrivé
-                ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 7) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetsurblocm1m8")
-          .AddPhase(new MovementPhase(0.33f, moveY: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveY: -1))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))
-          .AddPhase(new MovementPhase(0.40f, moveX: -1, endCondition: null))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 9)  //air libre pour sauté
-                                      && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 8, pos.Y - 9)  //air libre pour sauté
-                                      && IsSolid(pos.X - 1, pos.Y - 7) //sol a l arrivé
-                ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 8) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      /////////////////////// ok
-      action = new MovementAction("jumplefetsurblocm1m9")
-          .AddPhase(new MovementPhase(0.33f, moveY: -1, jump: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveY: -1))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))
-          .AddPhase(new MovementPhase(0.40f, moveX: -1, endCondition: null))              // continue à avancer en l’air
-          .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
-      ;
-      action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-                                      && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 10)  //air libre pour sauté
-                                      && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 9, pos.Y - 10)  //air libre pour sauté
-                                      && IsSolid(pos.X - 1, pos.Y - 8) //sol a l arrivé
-                ;
-      action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 9) }; // position finale approximative
-      action.CalculateCost();
-      movementLibrary.Add(action);
-      //      case 3: duration = 0.015f; break;
-      //      case 4: duration = 0.16f; break;
-      //      case 5: duration = 0.28f; break;
-      //      case 6: duration = 0.73f; break;
-      ///////////////////////
+      ////////////////////////// ok
+      //action = new MovementAction("rightp1")
+      //    .AddPhase(new MovementPhase(1f, moveX: 1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.X == startPoint.X + 1))  // ne pas bouger
+      //        //.AddPhase(new MovementPhase(1f, moveX: 0));
+      //;// ne pas bouger
+      //action.CalculateCost();
+      ////action.Condition = (pos, ai) => true; // on peux avancer dans le vide et depart dans le vide
+      //action.Condition = (pos, ai) => 
+      //                                //IsSolid(pos.X, pos.Y + 1)
+      //                                //&& IsSolid(pos.X + 1, pos.Y + 1) 
+      //                                //&& 
+      //                                !IsSolid(pos.X + 1, pos.Y)
+      //                                ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X + 1, pos.Y) };
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      ////action = new MovementAction("jumplefetholem1m0")
+      ////    .AddPhase(new MovementPhase(0.03f, moveX: -1, jump: true))              // continue à avancer en l’air
+      ////    .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      ////    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      ////;
+      ////action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      ////                                && IsAreaFree(pos.X, pos.X - 1, pos.Y, pos.Y - 2) //air libre pour sauté
+      ////                                && IsSolid(pos.X - 1, pos.Y + 1)//sol a l arrivé
+      ////      ;
+      ////action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y) }; // position finale approximative
+      ////action.CalculateCost();
+      ////movementLibrary.Add(action);
+      ///////////////////////// ok
       //action = new MovementAction("jumplefetholem2m0")
-      //    .AddPhase(new MovementPhase(0.2f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.1f, moveX: -1, jump: true))              // continue à avancer en l’air
       //    .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-      //    .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
+      //                                                                                                                                        ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
       //;
       //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
-      //                                && !IsSolid(pos.X, pos.X - 1, pos.Y, pos.Y - 2)
+      //                                && IsAreaFree(pos.X, pos.X - 2, pos.Y, pos.Y - 3)  //air libre pour sauté
+      //                                                                                   //&& !IsSolid(pos.X, pos.Y)
+      //                                                                                   //&& !IsSolid(pos.X, pos.Y - 1)
+      //                                                                                   //&& !IsSolid(pos.X, pos.Y - 2)
+      //                                                                                   //&& !IsSolid(pos.X, pos.Y - 3)
+      //                                                                                   //&& !IsSolid(pos.X - 1, pos.Y)
+      //                                                                                   //&& !IsSolid(pos.X - 1, pos.Y - 1)
+      //                                                                                   //&& !IsSolid(pos.X - 1, pos.Y - 2)
+      //                                                                                   //&& !IsSolid(pos.X - 1, pos.Y - 3)
+      //                                                                                   //&& !IsSolid(pos.X - 2, pos.Y)
+      //                                                                                   //&& !IsSolid(pos.X - 2, pos.Y - 1)
+      //                                                                                   //&& !IsSolid(pos.X - 2, pos.Y - 2)
+      //                                                                                   //&& !IsSolid(pos.X - 2, pos.Y - 3)
+      //                                && IsSolid(pos.X - 2, pos.Y + 1) //sol a l arrivé
       //      ;
-      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y) }; // position finale approximative
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 2, pos.Y) }; // position finale approximative
       //action.CalculateCost();
       //movementLibrary.Add(action);
-      ////////////////////////
+      ///////////////////////// ok quand mur a pos.Y - 3 alors ledgegrab , ajouté phase saut
+      //action = new MovementAction("jumplefetholem2m0ledge")
+      //    .AddPhase(new MovementPhase(0.1f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.GrabEdge))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.2f, moveX: -1))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.2f, moveX: -1, jump: true, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //                                                                                                                                                    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X - 1, pos.Y, pos.Y - 1)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X, pos.X - 1, pos.Y, pos.Y - 2)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 2, pos.Y + 1) //sol a l arrivé
+      //      ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 2, pos.Y) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumplefetholem3m0")
+      //    .AddPhase(new MovementPhase(0.15f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //                                                                                                                                        ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X - 3, pos.Y, pos.Y - 3)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 3, pos.Y + 1) //sol a l arrivé
+      //      ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 3, pos.Y) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumplefetholem4m0")
+      //    .AddPhase(new MovementPhase(0.5f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //                                                                                                                                        ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X - 4, pos.Y, pos.Y - 3)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 4, pos.Y + 1) //sol a l arrivé
+      //      ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 4, pos.Y) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumplefetholem5m0")
+      //    .AddPhase(new MovementPhase(0.37f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //                                                                                                                                        ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X - 5, pos.Y, pos.Y - 4)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 5, pos.Y + 1) //sol a l arrivé
+      //      ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 5, pos.Y) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      /////////////////////////  ok
+      //action = new MovementAction("jumplefetholem6m0")
+      //    .AddPhase(new MovementPhase(0.75f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //                                                                                                                                        ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X - 6, pos.Y, pos.Y - 4)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 6, pos.Y + 1) //sol a l arrivé
+      //      ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 6, pos.Y) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      /////////////////////////  ok
+      //action = new MovementAction("jumplefetholem7m0")
+      //    .AddPhase(new MovementPhase(0.3f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.4f, moveX: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //                                                                                                                                        ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X - 7, pos.Y, pos.Y - 4)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 7, pos.Y + 1) //sol a l arrivé
+      //      ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 7, pos.Y) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      /////////////////////////  ok
+      //action = new MovementAction("jumplefetholem7m0dash")
+      //    .AddPhase(new MovementPhase(0.3f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.1f, moveX: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveX: -1))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.28f, moveX: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //                                                                                                                                        ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X - 7, pos.Y, pos.Y - 3)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 7, pos.Y + 1) //sol a l arrivé
+      //      ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 7, pos.Y) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      /////////////////////////  ok
+      //action = new MovementAction("jumplefetholem8m0dash")
+      //    .AddPhase(new MovementPhase(0.3f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.05f, moveX: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveX: -1))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.24f, moveX: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //                                                                                                                                        ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X - 8, pos.Y, pos.Y - 3)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 8, pos.Y + 1) //sol a l arrivé
+      //      ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 8, pos.Y) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumplefetholem9m0dash")
+      //    .AddPhase(new MovementPhase(0.3f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveX: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveX: -1))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveX: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //                                                                                                                                        ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X - 9, pos.Y, pos.Y - 3)  //air libre pour sauté
+      //                                //todo plus precis il peut y avoir des bloc
+      //                                && IsSolid(pos.X - 9, pos.Y + 1) //sol a l arrivé
+      //      ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 9, pos.Y) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+
+      ////todo right jump hole
+      ////todo wall possible dans condition jup hole
+      //// ne pasforcément avoir un solid a l arrivé
+      //// avoir plusieurs point d'arrivé possible
+      //// faire un saut diagonale pour arriver en haut, et sans arrivé solid
+
+
+      ///////////////////////// ok
+      //action = new MovementAction("jumplefetsurblocm1m1")
+      //    .AddPhase(new MovementPhase(0.05f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 2)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 1, pos.Y - 2)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 1, pos.Y) //sol a l arrivé
+      //      ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 1) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumprightsurblocm1m1")
+      //    .AddPhase(new MovementPhase(0.05f, moveX: 1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.5f, moveX: 1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 2)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X + 1, pos.X + 1, pos.Y - 1, pos.Y - 2)  //air libre pour sauté
+      //                                && IsSolid(pos.X + 1, pos.Y) //sol a l arrivé
+      //      ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X + 1, pos.Y - 1) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumplefetsurblocm1m2")
+      //    .AddPhase(new MovementPhase(0.08f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 3)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 2, pos.Y - 3)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 1, pos.Y - 1) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 2) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumprightsurblocm1m2")
+      //    .AddPhase(new MovementPhase(0.08f, moveX: 1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.5f, moveX: 1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 3)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X + 1, pos.X + 1, pos.Y - 2, pos.Y - 3)  //air libre pour sauté
+      //                                && IsSolid(pos.X + 1, pos.Y - 1) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X + 1, pos.Y - 2) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok todo mauvaus calcul concidtion au dessus
+      //action = new MovementAction("jumplefetsurblocm1m3")
+      //    .AddPhase(new MovementPhase(0.27f, moveX: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.5f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 4)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 3, pos.Y - 4)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 1, pos.Y - 2) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 3) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok todo mauvaus calcul concidtion au dessus
+      //action = new MovementAction("jumprightsurblocm1m3")
+      //    .AddPhase(new MovementPhase(0.27f, moveX: 1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.5f, moveX: 1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 4)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X + 1, pos.X + 1, pos.Y - 3, pos.Y - 4)  //air libre pour sauté
+      //                                && IsSolid(pos.X + 1, pos.Y - 2) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X+ 1, pos.Y - 3) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumplefetsurblocm1m4")
+      //    .AddPhase(new MovementPhase(0.1f, moveY: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.27f, moveY: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.33f, moveX: -1, endCondition: null))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 5)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 4, pos.Y - 5)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 1, pos.Y - 3) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 4) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumprightsurblocm1m4")
+      //    .AddPhase(new MovementPhase(0.1f, moveY: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.27f, moveY:-1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.33f, moveX: 1, endCondition: null))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 5)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X + 1, pos.X + 1, pos.Y - 4, pos.Y - 5)  //air libre pour sauté
+      //                                && IsSolid(pos.X +1, pos.Y - 3) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X + 1, pos.Y - 4) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumplefetsurblocm1m5")
+      //    .AddPhase(new MovementPhase(0.15f, moveY: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.27f, moveY: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.30f, moveX: -1, endCondition: null))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 6)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 5, pos.Y - 6)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 1, pos.Y - 4) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 5) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumprightsurblocm1m5")
+      //    .AddPhase(new MovementPhase(0.15f, moveY: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.27f, moveY: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.30f, moveX: 1, endCondition: null))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 6)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X + 1, pos.X + 1, pos.Y - 5, pos.Y - 6)  //air libre pour sauté
+      //                                && IsSolid(pos.X + 1, pos.Y - 4) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X + 1, pos.Y - 5) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumplefetsurblocm1m6")
+      //    .AddPhase(new MovementPhase(0.25f, moveY: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.27f, moveY: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.30f, moveX: -1, endCondition: null))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 7)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 6, pos.Y - 7)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 1, pos.Y - 5) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 6) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumprightsurblocm1m6")
+      //    .AddPhase(new MovementPhase(0.25f, moveY: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.27f, moveY: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.30f, moveX: 1, endCondition: null))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 7)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X + 1, pos.X + 1, pos.Y - 6, pos.Y - 7)  //air libre pour sauté
+      //                                && IsSolid(pos.X + 1, pos.Y - 5) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X + 1, pos.Y - 6) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumplefetsurblocm1m7")
+      //    .AddPhase(new MovementPhase(0.33f, moveY: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))
+      //    .AddPhase(new MovementPhase(0.30f, moveX: -1, endCondition: null))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 8)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 7, pos.Y - 8)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 1, pos.Y - 6) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 7) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumprightsurblocm1m7")
+      //    .AddPhase(new MovementPhase(0.33f, moveY: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))
+      //    .AddPhase(new MovementPhase(0.30f, moveX: 1, endCondition: null))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 8)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X + 1, pos.X + 1, pos.Y - 7, pos.Y - 8)  //air libre pour sauté
+      //                                && IsSolid(pos.X + 1, pos.Y - 6) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X + 1, pos.Y - 7) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumplefetsurblocm1m8")
+      //    .AddPhase(new MovementPhase(0.33f, moveY: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))
+      //    .AddPhase(new MovementPhase(0.40f, moveX: -1, endCondition: null))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 9)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 8, pos.Y - 9)  //air libre pour sauté
+      //                                && IsSolid(pos.X - 1, pos.Y - 7) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 8) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// ok
+      //action = new MovementAction("jumprightsurblocm1m8")
+      //    .AddPhase(new MovementPhase(0.33f, moveY: -1, jump: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1))              // continue à avancer en l’air
+      //    .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))
+      //    .AddPhase(new MovementPhase(0.40f, moveX: 1, endCondition: null))              // continue à avancer en l’air
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      //;
+      //action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      //                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 9)  //air libre pour sauté
+      //                                && IsAreaFree(pos.X + 1, pos.X + 1, pos.Y - 8, pos.Y - 9)  //air libre pour sauté
+      //                                && IsSolid(pos.X + 1, pos.Y - 7) //sol a l arrivé
+      //          ;
+      //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 8) }; // position finale approximative
+      //action.CalculateCost();
+      //movementLibrary.Add(action);
+      ///////////////////////// KO a revoir
+      ////action = new MovementAction("jumplefetsurblocm1m9")
+      ////    .AddPhase(new MovementPhase(0.33f, moveY: -1, jump: true))              // continue à avancer en l’air
+      ////    .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))              // continue à avancer en l’air
+      ////    .AddPhase(new MovementPhase(0.001f, moveY: -1))              // continue à avancer en l’air
+      ////    .AddPhase(new MovementPhase(0.001f, moveY: -1, dash: true))
+      ////    .AddPhase(new MovementPhase(0.40f, moveX: -1, endCondition: null))              // continue à avancer en l’air
+      ////    //////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      ////;
+      ////action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      ////                                && IsAreaFree(pos.X, pos.X, pos.Y, pos.Y - 10)  //air libre pour sauté
+      ////                                && IsAreaFree(pos.X - 1, pos.X - 1, pos.Y - 9, pos.Y - 10)  //air libre pour sauté
+      ////                                && IsSolid(pos.X - 1, pos.Y - 8) //sol a l arrivé
+      ////          ;
+      ////action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 9) }; // position finale approximative
+      ////action.CalculateCost();
+      ////movementLibrary.Add(action);
+      /////////////////////////
+      ////action = new MovementAction("jumplefetholem2m0")
+      ////    .AddPhase(new MovementPhase(0.2f, moveX: -1, jump: true))              // continue à avancer en l’air
+      ////    .AddPhase(new MovementPhase(0.2f, moveX: -1, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
+      ////    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
+      ////;
+      ////action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
+      ////                                && !IsSolid(pos.X, pos.X - 1, pos.Y, pos.Y - 2)
+      ////      ;
+      ////action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y) }; // position finale approximative
+      ////action.CalculateCost();
+      ////movementLibrary.Add(action);
+      //////////////////////////
       //action = new MovementAction("ledgegrableftout")
       //    .AddPhase(new MovementPhase(0.5f, jump: true, moveX: -1));  // ne pas bouger
       //action.CalculateCost();
       //action.Condition = (pos, ai) => IsSolid(pos.X - 1, pos.Y) && !IsSolid(pos.X - 1, pos.Y - 1); //mur a gauche et vide dessous, possible grab
       //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y - 1) };
       //movementLibrary.Add(action);
-      ////////////////////////
+      //////////////////////////
       //action = new MovementAction("ledgegrabrightout")
       //    .AddPhase(new MovementPhase(0.5f, jump: true, moveX: 1));  // ne pas bouger
       //action.CalculateCost();
       //action.Condition = (pos, ai) => IsSolid(pos.X + 1, pos.Y) && !IsSolid(pos.X + 1, pos.Y - 1); //mur a gauche et vide dessous, possible grab
       //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X + 1, pos.Y - 1) };
       //movementLibrary.Add(action);
-      ////////////////////////
+      //////////////////////////
       //foreach (String dirType in new string[] { "leftm", "rightp" })
       //{
       //  int moveX = dirType == "leftm" ? -1 : 1;///
@@ -1381,7 +1596,7 @@ namespace TFModFortRiseAiSimple
       //          //Logger.Info($"{ai.player.X} <= {startPosition.X} - ({iteration} * {BLOCK_SIZE})  {startPosition.X - (iteration * BLOCK_SIZE)}");
       //          return ai.player.X <= startPosition.X - (iteration * BLOCK_SIZE);
       //        }))
-      //    //.AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
+      //    //////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
       //    ;
 
       //    //todo verifier que air est cellwakbale pour pos.Y et posY - 1
@@ -1406,7 +1621,7 @@ namespace TFModFortRiseAiSimple
       //          //Logger.Info($"{ai.player.X} <= {startPosition.X} - ({iteration} * {BLOCK_SIZE})  {startPosition.X - (iteration * BLOCK_SIZE)}");
       //          return ai.player.X <= startPosition.X - (iteration * BLOCK_SIZE);
       //        }))
-      //    //.AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
+      //    //////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
       //    ;
 
       //    //todo verifier que air est cellwakbale pour pos.Y et posY - 1
@@ -1438,7 +1653,7 @@ namespace TFModFortRiseAiSimple
       //    action = new MovementAction($"{jumpType}{iteration}m0")
       //        .AddPhase(new MovementPhase(duration, moveX: moveX, jump: true))              // continue à avancer en l’air
       //        .AddPhase(new MovementPhase(0.2f * iteration, moveX: moveX, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))              // continue à avancer en l’air
-      //        .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
+      //        ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
       //    ;
 
       //    action.Condition = (pos, ai) => IsSolid(pos.X, pos.Y + 1) // ne peut sauter que si au sol
@@ -1475,7 +1690,7 @@ namespace TFModFortRiseAiSimple
       //                  }
       //                }))
       //        .AddPhase(new MovementPhase(1f, moveX: moveX)) //aller dans la direction pour se poser sur la plateforme
-      //                                                       //.AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
+      //                                                       //////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
       //    ;
 
       //    //todo verifier que air est cellwakbale pour pos.Y et posY - 1
@@ -1503,7 +1718,7 @@ namespace TFModFortRiseAiSimple
       //    //.AddPhase(new MovementPhase(0.001f, moveY: 1, moveX: -1))
       //    //.AddPhase(new MovementPhase(0.001f, moveY: 1, moveX: -1, dash: true))
       //    .AddPhase(new MovementPhase(1.5f, moveX: -1, dash: true, jump: true, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))
-      //    .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
       //;
       //int maxJumpDistance = 10; //max 10
       ////int maxJumpDistance = 5;
@@ -1524,7 +1739,7 @@ namespace TFModFortRiseAiSimple
       //    //.AddPhase(new MovementPhase(0.001f, moveY: 1, moveX: -1))
       //    //.AddPhase(new MovementPhase(0.001f, moveY: 1, moveX: -1, dash: true))
       //    .AddPhase(new MovementPhase(1.5f, moveX: 1, dash: true, jump: true, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))
-      //    .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
       //;
       //action.Condition = (pos, ai) =>
       //{
@@ -1543,7 +1758,7 @@ namespace TFModFortRiseAiSimple
       //    .AddPhase(new MovementPhase(0.001f, moveY: 1, moveX: -1))
       //    .AddPhase(new MovementPhase(0.001f, moveY: 1, moveX: -1, dash: true))
       //    .AddPhase(new MovementPhase(1.5f, moveX: -1, dash: true, jump: true, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))
-      //    .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
       //;
       //action.Condition = (pos, ai) => HasGroundBelow(pos.X, pos.Y);      // ne peut sauter que si au sol
       //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 28, pos.Y) }; // position finale approximative
@@ -1557,7 +1772,7 @@ namespace TFModFortRiseAiSimple
       //    .AddPhase(new MovementPhase(0.001f, moveY: 1, moveX: 1))
       //    .AddPhase(new MovementPhase(0.001f, moveY: 1, moveX: 1, dash: true))
       //    .AddPhase(new MovementPhase(1.5f, moveX: 1, dash: true, jump: true, endCondition: (ai, startPoint, startPosition) => ai.playerInfo.onGround))
-      //    .AddPhase(new MovementPhase(1f, moveX: 0));  // ne pas bouger
+      //    ////.AddPhase(new MovementPhase(1f, moveX: 0));;  // ne pas bouger
       //;
       //action.Condition = (pos, ai) => HasGroundBelow(pos.X, pos.Y);      // ne peut sauter que si au sol
       //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X + 28, pos.Y) }; // position finale approximative
@@ -1583,17 +1798,28 @@ namespace TFModFortRiseAiSimple
 
     private Point SimulateFall(Point from)
     {
-      for (int f = 1; f < 24; f++) // chute max 10 cases
+      for (int f = 1; f < 24; f++) // chute max 24 cases
       {
-        int fy = from.Y + f;
-        if (fy >= LEVEL_HEIGHT - 1) break;
-        if (!IsCellWalkable(from.X, fy))
+        // --- calcul du Y avec wrap vertical ---
+        int fy = (from.Y + f) % LEVEL_HEIGHT;
+
+        // --- calcul du X avec wrap horizontal ---
+        int fx = (from.X + LEVEL_WIDTH) % LEVEL_WIDTH;
+
+        // si la case n’est pas walkable (sol, obstacle, mur, etc.)
+        if (!IsCellWalkable(fx, fy))
         {
-          return new Point(from.X, fy - 1);
+          // retourne la position juste au-dessus du bloc rencontré
+          int prevY = (fy - 1 + LEVEL_HEIGHT) % LEVEL_HEIGHT;
+          return new Point(fx, prevY);
         }
       }
-      return new Point(from.X, LEVEL_HEIGHT - 2);
+
+      // si rien n’a stoppé la chute, on atterrit juste avant de boucler
+      int landingY = (from.Y + 23) % LEVEL_HEIGHT;
+      return new Point((from.X + LEVEL_WIDTH) % LEVEL_WIDTH, landingY);
     }
+
 
   }
 
@@ -1606,7 +1832,7 @@ namespace TFModFortRiseAiSimple
     public float F => G + H;    // coût total
     public Node Parent;         // pour reconstruire le chemin
     public int PhaseIndex;      // index de phase si mouvement multi-phase
-
+    public string MoveName; // 🔥 Nom du mouvement utilisé pour arriver ici
     public Node(Point position, float g, float h, Node parent = null, int phaseIndex = 0)
     {
       this.Position = position;

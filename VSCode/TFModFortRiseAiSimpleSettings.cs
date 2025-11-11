@@ -60,7 +60,7 @@ namespace TFModFortRiseAiSimple
       {
         int indicePhase = Commands.ParseInt(args, 0, 0);
         float duration = Commands.ParseFloat(args, 1, 0);
-        AISiAgentLevelChase.MovementAction action = AISi.agents[1].movementLibrary.FirstOrDefault(a => a.Name == AISi.agents[1].testActionName);
+        MovementAction action = AISi.agents[1].movementLibrary.FirstOrDefault(a => a.Name == AISi.agents[1].testActionName);
         action.Phases[indicePhase].Duration = duration;
         Engine.Instance.Commands.Log($"change {action.Name}[{indicePhase}].Duration={duration}");
 

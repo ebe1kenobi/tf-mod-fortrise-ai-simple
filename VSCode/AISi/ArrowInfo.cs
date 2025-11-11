@@ -9,7 +9,7 @@ using static TowerFall.Arrow;
 
 namespace TFModFortRiseAiSimple
 {
-  class ArrowInfo
+  public class ArrowInfo
   {
     public ArrowStates state = ArrowStates.Shooting;
     public int X = 0;

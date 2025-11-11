@@ -7,6 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="fortrise4\**" />
+    <Compile Remove="MonoMod\**" />
+    <Compile Remove="towerfall_decompile_gog\**" />
+    <EmbeddedResource Remove="fortrise4\**" />
+    <EmbeddedResource Remove="MonoMod\**" />
+    <EmbeddedResource Remove="towerfall_decompile_gog\**" />
+    <None Remove="fortrise4\**" />
+    <None Remove="MonoMod\**" />
+    <None Remove="towerfall_decompile_gog\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MonoMod" Version="22.5.1.1">
       <IncludeAssets>compile</IncludeAssets>
     </PackageReference>

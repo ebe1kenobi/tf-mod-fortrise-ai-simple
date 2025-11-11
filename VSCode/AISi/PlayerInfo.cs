@@ -8,7 +8,7 @@ using TowerFall;
 
 namespace TFModFortRiseAiSimple
 {
-  class PlayerInfo
+  public class PlayerInfo
   {
     public PlayerState state;
     public Player.PlayerStates towerFallState;
@@ -42,7 +42,7 @@ namespace TFModFortRiseAiSimple
     }
   }
 
-  enum PlayerState
+  public enum PlayerState
   {
     Idle,
     Moving,

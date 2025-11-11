@@ -1,31 +1,53 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Dynamic;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
+//using IL.MonoMod;
+using Microsoft.Xna.Framework;
+using Monocle;
+using MonoMod.Utils;
+using TFModFortRiseLoaderAI;
+using TowerFall;
+using static TowerFall.Arrow;
+using static TowerFall.Player;
 
-//namespace TFModFortRiseAiSimple.AISi
-//{
-//  // --- Description d’un mouvement possible ---
-//  class MovementAction
-//  {
-//    public string Name;
-//    public int DeltaX;
-//    public int DeltaY;
-//    public float Cost;
-//    public Func<Point, AISiAgentLevelChase, bool> Condition; // Peut-on le faire ?
-//    public Func<Point, AISiAgentLevelChase, Point> Result;   // Résultat du mouvement
+namespace TFModFortRiseAiSimple
+{
+  public class MovementAction
+  {
+    public string Name;                        // nom du mouvement pour debug
+    public List<MovementPhase> Phases;         // phases du mouvement
+    public Func<Point, AISiAgentLevelChase, bool> Condition; // condition pour lancer le mouvement
+    public Func<Point, AISiAgentLevelChase, List<Point>> ResultPositions;   // position finale approximative
+    public float Cost;                          // coût du mouvement (temps total)
+                                                // Nouvelle propriété :
+    public Point StartPoint;
+    public Vector2 StartPosition;
 
-//    public MovementAction(string name, int dx, int dy, float cost,
-//        Func<Point, AISiAgentLevelChase, bool> cond,
-//        Func<Point, AISiAgentLevelChase, Point> res)
-//    {
-//      Name = name;
-//      DeltaX = dx;
-//      DeltaY = dy;
-//      Cost = cost;
-//      Condition = cond;
-//      Result = res;
-//    }
-//  }
-//}
+    public MovementAction(string name)
+    {
+      Name = name;
+      Phases = new List<MovementPhase>();
+    }
+
+    public MovementAction AddPhase(MovementPhase phase)
+    {
+      Phases.Add(phase);
+      return this;
+    }
+
+    // calcule le coût total du mouvement (par défaut somme des durées)
+    public void CalculateCost()
+    {
+      Cost = 0f;
+      foreach (var phase in Phases)
+      {
+        Cost += phase.Duration;
+      }
+    }
+  }
+}
