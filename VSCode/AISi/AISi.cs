@@ -12,7 +12,8 @@ namespace TFModFortRiseAiSimple
     public static bool isAgentReady = false;
     //private static AISiAgentLevel0[] agents;
     //private static AISiAgentLevel1[] agents;
-    public static AISiAgentLevelChase[] agents;
+    //public static AISiAgentLevelChase[] agents;
+    public static AISiAgentLevelSimple[] agents;
     //private static AISiAgentLevelTestMovement[] agents;
     public static PlayerInput[] AgentInputs;
     private static MatchSettings matchSettings;
@@ -26,7 +27,8 @@ namespace TFModFortRiseAiSimple
       
       //agents = new AISiAgentLevel0[max];
       //agents = new AISiAgentLevel1[max];
-      agents = new AISiAgentLevelChase[max];
+      //agents = new AISiAgentLevelChase[max];
+      agents = new AISiAgentLevelSimple[max];
       //agents = new AISiAgentLevelTestMovement[max];
       AgentInputs = new PlayerInput[max];
 
@@ -36,7 +38,8 @@ namespace TFModFortRiseAiSimple
         AgentInputs[i] = new TFModFortRiseLoaderAI.Input(i);
         //agents[i] = new AISiAgentLevel0(i, AINAME, AgentInputs[i]);
         //agents[i] = new AISiAgentLevel1(i, AINAME, AgentInputs[i]);
-        agents[i] = new AISiAgentLevelChase(i, AINAME, AgentInputs[i]);
+        //agents[i] = new AISiAgentLevelChase(i, AINAME, AgentInputs[i]);
+        agents[i] = new AISiAgentLevelSimple(i, AINAME, AgentInputs[i]);
         //agents[i] = new AISiAgentLevelTestMovement(i, AINAME, AgentInputs[i]);
         Logger.Info("Agent " + AINAME  + " " + i + " Created");
       }

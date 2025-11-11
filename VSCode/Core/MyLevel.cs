@@ -37,7 +37,7 @@ namespace TFModFortRiseAiSimple
       {
         orig(self);
         if (MyTFGame.displayPath && !sandboxEntityCreated) { 
-          self.Add(new DebugPathRenderer(AISi.agents[1]));
+          //self.Add(new DebugPathRenderer(AISi.agents[1]));
           self.UpdateEntityLists();
           sandboxEntityCreated = true;
         }
@@ -49,8 +49,8 @@ namespace TFModFortRiseAiSimple
       //SANDBOX
       if (!sandboxEntityCreated)
       {
-        if (MyTFGame.displayPath)
-          self.Add(new DebugPathRenderer(AISi.agents[1]));
+        //if (MyTFGame.displayPath)
+        //  self.Add(new DebugPathRenderer(AISi.agents[1]));
         playerIndex = 0;
         var player1 = EntityCreator.CreatePlayer(playerIndex, self.Session.MatchSettings.GetPlayerAllegiance(playerIndex), 15, 220);
         self.Add(player1);

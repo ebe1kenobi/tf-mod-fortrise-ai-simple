@@ -7,8 +7,10 @@ namespace TFModFortRiseAiSimple
   {
     static bool sessionStarted = false;
     static int counter = 0;
-    public static bool sandbox = true;
-    public static bool displayPath = true;
+    public static bool sandbox = false;
+    //public static bool sandbox = true;
+    //public static bool displayPath = true;
+    public static bool displayPath = false;
     public static int level = 1;
     public static int sublevel = 1;
     public static bool customLevel = true;
