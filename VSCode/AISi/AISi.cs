@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 using MonoMod.Utils;
 using TFModFortRiseLoaderAI;
@@ -12,7 +12,7 @@ namespace TFModFortRiseAiSimple
     public static bool isAgentReady = false;
     //private static AISiAgentLevel0[] agents;
     //private static AISiAgentLevel1[] agents;
-    public static AISiAgentLevelChase[] agents;
+    public static AISiAgentHybrid[] agents;
     //private static AISiAgentLevelTestMovement[] agents;
     public static PlayerInput[] AgentInputs;
     private static MatchSettings matchSettings;
@@ -26,7 +26,7 @@ namespace TFModFortRiseAiSimple
       
       //agents = new AISiAgentLevel0[max];
       //agents = new AISiAgentLevel1[max];
-      agents = new AISiAgentLevelChase[max];
+      agents = new AISiAgentHybrid[max];
       //agents = new AISiAgentLevelTestMovement[max];
       AgentInputs = new PlayerInput[max];
 
@@ -34,10 +34,25 @@ namespace TFModFortRiseAiSimple
       {
         // create an agent for each player
         AgentInputs[i] = new TFModFortRiseLoaderAI.Input(i);
-        //agents[i] = new AISiAgentLevel0(i, AINAME, AgentInputs[i]);
-        //agents[i] = new AISiAgentLevel1(i, AINAME, AgentInputs[i]);
-        agents[i] = new AISiAgentLevelChase(i, AINAME, AgentInputs[i]);
-        //agents[i] = new AISiAgentLevelTestMovement(i, AINAME, AgentInputs[i]);
+        
+        // Create agent based on settings
+        int aiType = TFModFortRiseAiSimpleModule.Settings.AIType;
+        switch (aiType)
+        {
+          case 0:
+            // Legacy chase agent (fallback)
+            Logger.Info("Creating Chase agent for slot " + i);
+            agents[i] = null; // Will be handled by legacy system
+            break;
+          case 1:
+          case 2:
+          default:
+            // Hybrid agent (default)
+            Logger.Info("Creating Hybrid agent for slot " + i);
+            agents[i] = new AISiAgentHybrid(i, AINAME, AgentInputs[i]);
+            break;
+        }
+        
         Logger.Info("Agent " + AINAME  + " " + i + " Created");
       }
 

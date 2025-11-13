@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -8,9 +8,9 @@ namespace TFModFortRiseAiSimple
 {
   public class DebugPathRenderer : Entity
   {
-    private AISiAgentLevelChase ai;
+    private AISiAgentHybrid ai;
 
-    public DebugPathRenderer(AISiAgentLevelChase agent)
+    public DebugPathRenderer(AISiAgentHybrid agent)
     {
       ai = agent;
       Depth = -10000; // au-dessus de tout
@@ -64,7 +64,7 @@ namespace TFModFortRiseAiSimple
       }
 
       // --- Optionnel : grille pour contexte ---
-      DrawLevelGrid(ai);
+      //DrawLevelGrid(ai);
     }
 
     private void DrawLevelGrid(AISiAgentLevelChase ai)
