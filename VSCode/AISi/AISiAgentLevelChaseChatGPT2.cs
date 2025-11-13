@@ -518,9 +518,11 @@
 //      dynData.Dispose();
 //    }
 
-//    void UpdateArrowInfo() {
+//    void UpdateArrowInfo()
+//    {
 //      arrows.Clear();
-//      foreach  (Arrow arrow in level[GameTags.Arrow]) {
+//      foreach (Arrow arrow in level[GameTags.Arrow])
+//      {
 //        ArrowInfo arrowInfo = new ArrowInfo();
 //        arrowInfo.state = arrow.State;
 //        arrowInfo.Position = arrow.Position;
@@ -545,7 +547,7 @@
 //    }
 //  }
 
-  
+
 //  class Node
 //  {
 //    public Point Position;

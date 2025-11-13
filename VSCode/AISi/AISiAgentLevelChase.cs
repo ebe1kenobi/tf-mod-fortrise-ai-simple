@@ -1,4 +1,4 @@
-﻿//version poursuite pas mal a garder comme base https://chatgpt.com/c/690e70ba-9428-832a-a6db-eb815e160d67
+﻿//version poursuite avec bibliotheque de mouvement, masi pasterrible
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -64,8 +64,8 @@ namespace TFModFortRiseAiSimple
 
     // Variables globales à ajouter en haut de la classe :
     public float pathRecalcTimer = 0f;
-    public const float PATH_RECALC_INTERVAL = 2f; //0.25f; // secondes
-    //public const float PATH_RECALC_INTERVAL = 0.25f; //0.25f; // secondes
+    //public const float PATH_RECALC_INTERVAL = 2f; //0.25f; // secondes
+    public const float PATH_RECALC_INTERVAL = 0.25f; //0.25f; // secondes
     public List<Point> currentPath = null;
     public int currentPathIndex = 0;
     public Point lastGoal = new Point(-1, -1);
@@ -266,6 +266,17 @@ namespace TFModFortRiseAiSimple
         currentAction.StartPoint = WorldToCell(player.Position);
         currentAction.StartPosition = player.Position;
         currentPhaseIndex = 0;
+
+        // Réinitialiser la vitesse à zéro pour garantir un départ propre
+        // La librairie de mouvement nécessite une vitesse à zéro au départ
+        if (player != null)
+        {
+          player.Speed = Vector2.Zero;
+
+          // Vérification supplémentaire : si la vitesse n'est pas à zéro après un court délai,
+          // on attend un peu avant de commencer l'action (sécurité)
+          // Cette vérification est optionnelle mais peut aider dans certains cas
+        }
 
         if (currentAction.Phases.Count > 0)
           phaseTimer = currentAction.Phases[currentPhaseIndex].Duration;
@@ -799,16 +810,16 @@ namespace TFModFortRiseAiSimple
       // On parcourt toutes les cellules entre les deux X
       //for (int x = startX; x <= endX; x++)
       //{
-        for (int y = startY; y <= endY; y++)
-        {
-          // Si la case est un mur, ce n’est pas walkable
-          if (!IsSolid(fromX, toX, y))
-            return false;
-        }
-        // Optionnel : vérifier aussi qu’il y a un sol dessous
-        // si tu veux t’assurer qu’on ne traverse pas un vide
-        // if (!HasGroundBelow(x, y))
-        //     return false;
+      for (int y = startY; y <= endY; y++)
+      {
+        // Si la case est un mur, ce n’est pas walkable
+        if (!IsSolid(fromX, toX, y))
+          return false;
+      }
+      // Optionnel : vérifier aussi qu’il y a un sol dessous
+      // si tu veux t’assurer qu’on ne traverse pas un vide
+      // if (!HasGroundBelow(x, y))
+      //     return false;
       //}
 
       return true;
@@ -885,7 +896,7 @@ namespace TFModFortRiseAiSimple
           foreach (Point dest in possibleDestinations)
           {
             Point d = dest;
-            //Logger.Info("dest " + d.X + "," + d.Y);   
+            //Logger.Info("dest " + d.X + "," + d.Y);
             // Vérifier les limites
             if (d.X < 0 || d.X >= LEVEL_WIDTH || d.Y < 0 || d.Y >= LEVEL_HEIGHT)
               continue;
@@ -901,7 +912,16 @@ namespace TFModFortRiseAiSimple
             if (closed.Contains(d)) continue;
             //Logger.Info("pas deja visité");
 
-            float g = current.G + move.Cost;
+            // Ajuster le coût selon la direction : favoriser les mouvements vers le haut
+            float adjustedCost = move.Cost;
+            int deltaY = d.Y - current.Position.Y;
+            if (deltaY < 0) // mouvement vers le haut
+            {
+              // Réduire le coût des mouvements vers le haut pour les favoriser
+              adjustedCost *= 0.9f;
+            }
+
+            float g = current.G + adjustedCost;
             Node existing = open.FirstOrDefault(n => n.Position.Equals(d));
             if (existing == null)
             {
@@ -925,7 +945,24 @@ namespace TFModFortRiseAiSimple
 
     private float Heuristic(Point a, Point b)
     {
-      return Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
+      int dx = Math.Abs(a.X - b.X);
+      int dy = Math.Abs(a.Y - b.Y);
+
+      // Favoriser les mouvements vers le haut (la cible est souvent au-dessus)
+      // Si la cible est au-dessus, pénaliser moins les mouvements verticaux
+      if (b.Y < a.Y) // cible au-dessus
+      {
+        // Réduire le coût des mouvements verticaux vers le haut
+        return dx + (dy * 0.8f); // pénalité réduite pour monter
+      }
+      else if (b.Y > a.Y) // cible en dessous
+      {
+        // Les mouvements vers le bas sont plus faciles (gravité)
+        return dx + (dy * 0.6f);
+      }
+
+      // Même hauteur
+      return dx + dy;
     }
 
     private List<Point> ReconstructPath(Node node)
@@ -959,12 +996,12 @@ namespace TFModFortRiseAiSimple
       //Spikeball
       //SwitchBlock
       //TreasureChest
-      //UpdateMovingBlockGrid();   // CrackedPlatform  CrackedWall  CrumbleBlock CrumbleWall  GraniteBlock  LoopPlatform 
+      //UpdateMovingBlockGrid();   // CrackedPlatform  CrackedWall  CrumbleBlock CrumbleWall  GraniteBlock  LoopPlatform
       //JumpPad
       //UpdatePlatformTraversableGrid();
       //DebugPrintGrid();
       int playerIndex = index;
-      player = level.GetPlayer(index); //todo check 
+      player = level.GetPlayer(index); //todo check
                                        //search first enemy
       int enemyIndex = index == 0 ? 1 : 0;
       enemy = level.GetPlayer(index == 0 ? 1 : 0);  //todo , test for 2 players only
@@ -1076,7 +1113,7 @@ namespace TFModFortRiseAiSimple
     }
 
     // --- Description d’un mouvement possible ---
-    
+
 
 
 
@@ -1098,10 +1135,10 @@ namespace TFModFortRiseAiSimple
       //;  // ne pas bouger
       //action.CalculateCost();
       ////action.Condition = (pos, ai) => true; // on peux avancer dans le vide et depart dans le vide
-      //action.Condition = (pos, ai) => 
+      //action.Condition = (pos, ai) =>
       //                                //IsSolid(pos.X, pos.Y + 1)
-      //                                //&& IsSolid(pos.X - 1, pos.Y + 1) 
-      //                                //&& 
+      //                                //&& IsSolid(pos.X - 1, pos.Y + 1)
+      //                                //&&
       //                                !IsSolid(pos.X - 1, pos.Y)
       //;
       //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X - 1, pos.Y) };
@@ -1113,10 +1150,10 @@ namespace TFModFortRiseAiSimple
       //;// ne pas bouger
       //action.CalculateCost();
       ////action.Condition = (pos, ai) => true; // on peux avancer dans le vide et depart dans le vide
-      //action.Condition = (pos, ai) => 
+      //action.Condition = (pos, ai) =>
       //                                //IsSolid(pos.X, pos.Y + 1)
-      //                                //&& IsSolid(pos.X + 1, pos.Y + 1) 
-      //                                //&& 
+      //                                //&& IsSolid(pos.X + 1, pos.Y + 1)
+      //                                //&&
       //                                !IsSolid(pos.X + 1, pos.Y)
       //                                ;
       //action.ResultPositions = (pos, ai) => new List<Point> { new Point(pos.X + 1, pos.Y) };
@@ -1589,7 +1626,7 @@ namespace TFModFortRiseAiSimple
       //  int moveX = dirType == "leftm" ? -1 : 1;///
       //  for (int i = 1; i <= 2; i++)
       //  {
-      //    int iteration = i; // 
+      //    int iteration = i; //
       //    action = new MovementAction($"{dirType}{iteration}m0")
       //        .AddPhase(new MovementPhase(0.12f * iteration, moveX: moveX, endCondition: (ai, startPoint, startPosition) =>
       //        {
@@ -1614,7 +1651,7 @@ namespace TFModFortRiseAiSimple
       //  int moveX = dirType == "leftfallm" ? -1 : 1;///
       //  for (int i = 2; i <= 2; i++)
       //  {
-      //    int iteration = i; // 
+      //    int iteration = i; //
       //    action = new MovementAction($"{dirType}{iteration}m0")
       //        .AddPhase(new MovementPhase(0.12f * iteration, moveX: moveX, endCondition: (ai, startPoint, startPosition) =>
       //        {
@@ -1672,7 +1709,7 @@ namespace TFModFortRiseAiSimple
       //  int moveX = dirType == "jumpverticalleftm" ? -1 : 1;///
       //  for (int i = 1; i <= 1; i++)
       //  {
-      //    int iteration = i; // 
+      //    int iteration = i; //
       //    action = new MovementAction($"{dirType}{iteration}m3")
       //        .AddPhase(new MovementPhase(2f, jump: true, endCondition: (ai, startPoint, startPosition) =>
       //                {
