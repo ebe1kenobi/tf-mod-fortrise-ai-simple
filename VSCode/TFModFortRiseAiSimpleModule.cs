@@ -17,7 +17,7 @@ namespace TFModFortRiseAiSimple
     public static bool EightPlayerMod = false; //todo
     public static bool PlayTagMod = false; //todo
 
-    public ILoaderAIModApi? LoaderAIModApi { get; private set; }
+    public ILoaderAIModApi LoaderAIModApi { get; private set; }
 
     //public override Type SettingsType => typeof(TFModFortRiseAiSimpleSettings);
     //public static TFModFortRiseAiSimpleSettings Settings => (TFModFortRiseAiSimpleSettings)Instance.InternalSettings;
@@ -26,7 +26,7 @@ namespace TFModFortRiseAiSimple
     {
       if (!Debugger.IsAttached)
       {
-        Debugger.Launch(); // Proposera d’attacher Visual Studio
+        //Debugger.Launch(); // Proposera d’attacher Visual Studio
       }
       Instance = this;
       //Logger.Init("TFModFortRiseAiSimpleLOG");
@@ -35,7 +35,7 @@ namespace TFModFortRiseAiSimple
         hookable.GetMethod(nameof(IHookable.Load))!.Invoke(null, [context.Harmony]);
       }
       //typeof(LoaderAIImport).ModInterop();
-      LoaderAIModApi = context.Interop.GetApi<ILoaderAIModApi>("TFModFortRiseLoaderAI");
+      LoaderAIModApi = context.Interop.GetApi<ILoaderAIModApi>("LoaderAI");
     }
 
     //public override void Load()
