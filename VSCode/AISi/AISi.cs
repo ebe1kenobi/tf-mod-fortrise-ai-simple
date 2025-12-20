@@ -27,7 +27,7 @@ namespace TFModFortRiseAiSimple
       }
 
       isAgentReady = true;
-      LoaderAIImport.addAgent(AINAME, agents);
+      TFModFortRiseAiSimpleModule.Instance.LoaderAIModApi.addAgent(AINAME, agents);
     }
   }
 }

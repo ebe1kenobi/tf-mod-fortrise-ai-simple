@@ -1,40 +1,49 @@
 ﻿using System;
+using System.Diagnostics;
 using FortRise;
+using Microsoft.Extensions.Logging;
 using MonoMod.ModInterop;
+using TFModFortRiseLoaderAI;
 
 namespace TFModFortRiseAiSimple
 {
-  [Fort("com.ebe1.kenobi.TFModFortRiseAiExample", "TFModFortRiseAiExample")]
-  public class TFModFortRiseAiSimpleModule : FortModule
+  public class TFModFortRiseAiSimpleModule : Mod
   {
     public static TFModFortRiseAiSimpleModule Instance;
-    public static bool EightPlayerMod;
-    public static bool PlayTagMod;
 
-    public override Type SettingsType => typeof(TFModFortRiseAiSimpleSettings);
-    public static TFModFortRiseAiSimpleSettings Settings => (TFModFortRiseAiSimpleSettings)Instance.InternalSettings;
+    internal Type[] Hookables = [
+        typeof(MyTFGame),
+    ];
+    public static bool EightPlayerMod = false; //todo
+    public static bool PlayTagMod = false; //todo
 
-    public TFModFortRiseAiSimpleModule()
+    public ILoaderAIModApi? LoaderAIModApi { get; private set; }
+
+    //public override Type SettingsType => typeof(TFModFortRiseAiSimpleSettings);
+    //public static TFModFortRiseAiSimpleSettings Settings => (TFModFortRiseAiSimpleSettings)Instance.InternalSettings;
+
+    public TFModFortRiseAiSimpleModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
     {
+      if (!Debugger.IsAttached)
+      {
+        Debugger.Launch(); // Proposera d’attacher Visual Studio
+      }
       Instance = this;
       //Logger.Init("TFModFortRiseAiSimpleLOG");
+      foreach (var hookable in Hookables)
+      {
+        hookable.GetMethod(nameof(IHookable.Load))!.Invoke(null, [context.Harmony]);
+      }
+      //typeof(LoaderAIImport).ModInterop();
+      LoaderAIModApi = context.Interop.GetApi<ILoaderAIModApi>("TFModFortRiseLoaderAI");
     }
 
-    public override void LoadContent()
-    {
-    }
-
-    public override void Load()
-    {
-      MyTFGame.Load();
-      typeof(LoaderAIImport).ModInterop();
-      EightPlayerMod = IsModExists("WiderSetMod");
-      PlayTagMod = IsModExists("PlayTag");
-    }
-
-    public override void Unload()
-    {
-      MyTFGame.Unload();
-    }
+    //public override void Load()
+    //{
+    //  MyTFGame.Load();
+    //  typeof(LoaderAIImport).ModInterop();
+    //  //EightPlayerMod = IsModExists("WiderSetMod");
+    //  //PlayTagMod = IsModExists("PlayTag");
+    //}
   }
 }

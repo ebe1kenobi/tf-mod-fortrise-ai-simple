@@ -1,24 +1,24 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FortRise;
+using HarmonyLib;
+using Microsoft.Xna.Framework;
+using TFModFortRiseLoaderAI;
 using TowerFall;
 
 namespace TFModFortRiseAiSimple
 {
-  internal class MyTFGame
+  internal class MyTFGame : IHookable
   {
-    internal static void Load()
+    public static void Load(IHarmony harmony)
     {
-      On.TowerFall.TFGame.Update += Update_patch;
+      harmony.Patch(
+          AccessTools.DeclaredMethod(typeof(TFGame), "Update"),
+          prefix: new HarmonyMethod(Update_patch)
+      );
     }
 
-    internal static void Unload()
+    public static void Update_patch(TFGame __instance)
     {
-      On.TowerFall.TFGame.Update -= Update_patch;
-    }
-
-    public static void Update_patch(On.TowerFall.TFGame.orig_Update orig, global::TowerFall.TFGame self, GameTime gameTime)
-    {
-      orig(self, gameTime);
-      if (LoaderAIImport.CanAddAgent())
+      if (TFModFortRiseAiSimpleModule.Instance.LoaderAIModApi.CanAddAgent())
       {
         AISi.CreateAgent();
       }

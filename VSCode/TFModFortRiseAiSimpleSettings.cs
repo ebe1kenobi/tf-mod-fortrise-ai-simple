@@ -1,8 +1,8 @@
-﻿using FortRise;
+﻿//using FortRise;
 
-namespace TFModFortRiseAiSimple
-{
-  public class TFModFortRiseAiSimpleSettings: ModuleSettings
-  {
-  }
-}
+//namespace TFModFortRiseAiSimple
+//{
+//  public class TFModFortRiseAiSimpleSettings: ModuleSettings
+//  {
+//  }
+//}
