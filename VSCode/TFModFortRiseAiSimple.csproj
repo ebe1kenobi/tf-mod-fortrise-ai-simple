@@ -8,6 +8,11 @@
   <ItemGroup>
     <PackageReference Include="FortRise.Configuration" Version="1.5.6" />
   </ItemGroup>
-
+  <ItemGroup>
+  <Reference Include="TFModFortRiseAI.Abstractions">
+    <HintPath>../../TFModFortRiseAI.Abstractions/bin/Debug/net10.0/TFModFortRiseAI.Abstractions.dll</HintPath>
+    <Private>true</Private>
+  </Reference>
+  </ItemGroup>
 </Project>
 

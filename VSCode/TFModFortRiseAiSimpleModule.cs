@@ -29,7 +29,7 @@ namespace TFModFortRiseAiSimple
         //Debugger.Launch(); // Proposera d’attacher Visual Studio
       }
       Instance = this;
-      //Logger.Init("TFModFortRiseAiSimpleLOG");
+      TFModFortRiseAiSimple.Logger.Init("TFModFortRiseAiSimpleLOG");
       foreach (var hookable in Hookables)
       {
         hookable.GetMethod(nameof(IHookable.Load))!.Invoke(null, [context.Harmony]);

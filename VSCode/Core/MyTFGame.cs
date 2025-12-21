@@ -8,6 +8,7 @@ namespace TFModFortRiseAiSimple
 {
   internal class MyTFGame : IHookable
   {
+    static bool RegisterAgent = false;
     public static void Load(IHarmony harmony)
     {
       harmony.Patch(
@@ -18,9 +19,22 @@ namespace TFModFortRiseAiSimple
 
     public static void Update_patch(TFGame __instance)
     {
-      if (TFModFortRiseAiSimpleModule.Instance.LoaderAIModApi.CanAddAgent())
+      if (TFModFortRiseAiSimpleModule.Instance.LoaderAIModApi.CanAddAgent()&& !RegisterAgent)
       {
-        AISi.CreateAgent();
+        Logger.Info("TFModFortRiseAiSimpleModule RegisterAgent");
+        TFModFortRiseAiSimpleModule.Instance.LoaderAIModApi.RegisterAgent(
+[
+              new SimpleAILogic(),
+              new SimpleAILogic(),
+              new SimpleAILogic(),
+              new SimpleAILogic(),
+              new SimpleAILogic(),
+              new SimpleAILogic(),
+              new SimpleAILogic(),
+              new SimpleAILogic(),
+]
+              );
+        RegisterAgent = true;
       }
     }
   }
