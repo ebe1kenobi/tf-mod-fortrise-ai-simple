@@ -59,26 +59,32 @@ namespace TFModFortRiseAiSimple
     }
 
     public void setJump(bool jump) {
-      inputState.JumpCheck = jump;
-      inputState.JumpPressed = !inputState.JumpCheck;
+      //inputState.JumpCheck = jump;
+      //inputState.JumpPressed = !inputState.JumpCheck;
+      inputState.JumpCheck = true;
+      inputState.JumpPressed = !prevInputState.JumpCheck;
     }
 
     public void setDodge(bool dodge)
     {
       inputState.DodgeCheck = dodge;
-      inputState.DodgePressed = !inputState.DodgeCheck;
+      inputState.DodgePressed = !prevInputState.DodgeCheck;
     }
 
 
-    List<int> actions = new List<int>() { 0, 0, 0, 0, 0, 0, 0 };
+    List<int> actions = new List<int>() { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-    List<int> GetAction() {
+    List<int> GetAction()
+    {
       actions[IAgentLogic.X] = inputState.MoveX;
       actions[IAgentLogic.Y] = inputState.MoveY;
-      actions[IAgentLogic.JUMP] = inputState.JumpCheck ? 1 : 0;
-      actions[IAgentLogic.DODGE] = inputState.DodgeCheck ? 1 : 0;
-      actions[IAgentLogic.SHOOT] = inputState.ShootCheck ? 1 : 0;
-      return actions;     
+      actions[IAgentLogic.JUMP_CHECK] = inputState.JumpCheck ? 1 : 0;
+      actions[IAgentLogic.JUMP_PRESSED] = inputState.JumpPressed ? 1 : 0;
+      actions[IAgentLogic.DODGE_CHECK] = inputState.DodgeCheck ? 1 : 0;
+      actions[IAgentLogic.DODGE_PRESSED] = inputState.DodgePressed ? 1 : 0;
+      actions[IAgentLogic.SHOOT_CHECK] = inputState.ShootCheck ? 1 : 0;
+      actions[IAgentLogic.SHOOT_PRESSED] = inputState.ShootPressed ? 1 : 0;
+      return actions;
     }
     public void setCopy() {
       //this.input.prevInputState = this.input.GetCopy(this.input.inputState);
@@ -113,6 +119,9 @@ namespace TFModFortRiseAiSimple
       inputState.MoveX = 0;
       inputState.AimAxis.Y = 0;
       inputState.MoveY = 0;
+      inputState.JumpCheck = false;
+      inputState.DodgeCheck = false;
+      inputState.ShootCheck = false;
       //inputState.JumpCheck = true;
 
 
@@ -327,7 +336,7 @@ namespace TFModFortRiseAiSimple
       //      self.press('s')
       /////////////////////////////////////////////
       //if (!agent.playTagCountDownOn && agent.Arrows.Count > 0) //TODO playtag
-      if (false && agent.Arrows.Count > 0)
+      if (agent.Arrows.Count > 0)
       //if (!PlayTagImport.IsPlayTagCountDownOn(agent.PlayerIndex) && agent.Arrows.Count > 0) 
       //if (agent.Arrows.Count > 0)
       {
@@ -412,9 +421,9 @@ namespace TFModFortRiseAiSimple
         //this.input.inputState.JumpCheck = true;
         //this.input.inputState.JumpPressed = !this.input.prevInputState.JumpCheck;
 
-        //setJump(true);
-        inputState.JumpCheck = true;
-        inputState.JumpPressed = !inputState.JumpCheck;
+        setJump(true);
+        //inputState.JumpCheck = true;
+        //inputState.JumpPressed = !prevInputState.JumpCheck;
 
       }
 

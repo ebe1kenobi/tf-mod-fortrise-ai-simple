@@ -1,17 +1,17 @@
 {
 	"name": "AISimple",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"author": "ebe1.kenobi",
 	"description": "AISimple",
 	"dll": "TFModFortRiseAiSimple.dll",
 	"dependencies": [
 		{
 			"name": "FortRise",
-			"version": "5.0.0"
+			"version": "5.2.3"
 		},
 		{
 			"name": "LoaderAI",
-			"version": "1.0.3"
+			"version": "1.0.4"
 		}
 	]
 }
